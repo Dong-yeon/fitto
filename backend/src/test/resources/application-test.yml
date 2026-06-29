@@ -1,0 +1,24 @@
+# 테스트 프로파일 — 외부 인프라(Postgres/Redis) 없이 컨텍스트 로드 검증
+spring:
+  datasource:
+    url: jdbc:h2:mem:fitto;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false      # 운영 마이그레이션은 Postgres 전용 (phase별 엔티티 검증은 ddl-auto)
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+# Redis 자동연결 비활성화를 위해 lettuce는 lazy — 테스트에서 미사용
+fitto:
+  jwt:
+    secret: test-secret-test-secret-test-secret-32b
+    access-token-expire-minutes: 30
+    refresh-token-expire-days: 14
