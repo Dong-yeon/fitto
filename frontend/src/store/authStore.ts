@@ -35,10 +35,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   isAuthenticated: false,
 
-  // 앱 시작 시 저장된 토큰 확인
+  // 앱 시작 시 저장된 토큰 확인 후 프로필 복원
   bootstrap: async () => {
     const token = await SecureStore.getItemAsync(STORAGE_KEYS.accessToken);
-    set({ isAuthenticated: !!token, isLoading: false });
+    if (!token) {
+      set({ isAuthenticated: false, isLoading: false });
+      return;
+    }
+    try {
+      // 토큰 만료 시 client 인터셉터가 refresh 를 시도. 실패하면 catch 로 이동.
+      const user = await authApi.me();
+      set({ user, isAuthenticated: true, isLoading: false });
+    } catch {
+      await clearTokens();
+      set({ user: null, isAuthenticated: false, isLoading: false });
+    }
   },
 
   setSession: async (tokens) => {

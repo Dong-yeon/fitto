@@ -39,7 +39,8 @@ server:
 # 애플리케이션 커스텀 설정
 fitto:
   jwt:
-    secret: ${JWT_SECRET:local-dev-secret-change-me-in-production-please-32bytes}
+    # 운영에서는 반드시 JWT_SECRET 환경변수로 주입. 미설정 시 dev 전용 값(운영 프로파일에서 부팅 차단).
+    secret: ${JWT_SECRET:dev-only-secret-change-me-in-production-0123456789}
     access-token-expire-minutes: 30
     refresh-token-expire-days: 14
 

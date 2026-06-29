@@ -85,6 +85,13 @@ public class AuthService {
         return issueTokens(user);
     }
 
+    /** 현재 로그인 사용자 조회 — 클라이언트 콜드 스타트 시 프로필 복원용. */
+    public UserResponse getMe(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+        return UserResponse.from(user);
+    }
+
     /** 회원 탈퇴 — 연결된 관계를 종료한 뒤 계정 삭제 (AUTH-06). */
     @Transactional
     public void withdraw(Long userId) {

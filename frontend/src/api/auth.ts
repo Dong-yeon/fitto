@@ -1,6 +1,6 @@
 /** 인증 API — 설계서 4.2 */
 import { apiClient, unwrap } from './client';
-import type { ApiResponse, AuthTokens, Gender } from '../types';
+import type { ApiResponse, AuthTokens, Gender, User } from '../types';
 
 export interface RegisterPayload {
   email: string;
@@ -26,6 +26,7 @@ export const authApi = {
         headers: { Authorization: `Bearer ${refreshToken}` },
       }),
     ),
+  me: () => unwrap(apiClient.get<ApiResponse<User>>('/auth/me')),
   // v2.0: 로그아웃 엔드포인트 없음 — 클라이언트에서 토큰 삭제로 처리
   withdraw: () => unwrap(apiClient.delete<ApiResponse<void>>('/auth/withdraw')),
 };

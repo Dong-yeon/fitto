@@ -3,6 +3,7 @@ package com.fitto.auth.controller;
 import com.fitto.auth.dto.LoginRequest;
 import com.fitto.auth.dto.RegisterRequest;
 import com.fitto.auth.dto.TokenResponse;
+import com.fitto.auth.dto.UserResponse;
 import com.fitto.auth.service.AuthService;
 import com.fitto.common.exception.BusinessException;
 import com.fitto.common.exception.ErrorCode;
@@ -11,6 +12,7 @@ import com.fitto.common.security.AuthUser;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -50,6 +52,11 @@ public class AuthController {
         }
         String refreshToken = authorization.substring(BEARER.length());
         return ApiResponse.success(authService.refresh(refreshToken));
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> me(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(authService.getMe(user.id()));
     }
 
     @DeleteMapping("/withdraw")
