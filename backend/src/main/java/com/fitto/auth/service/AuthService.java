@@ -9,6 +9,7 @@ import com.fitto.common.exception.BusinessException;
 import com.fitto.common.exception.ErrorCode;
 import com.fitto.common.security.JwtTokenProvider;
 import com.fitto.relation.repository.RelationRepository;
+import com.fitto.streak.repository.StreakRepository;
 import com.fitto.user.domain.Role;
 import com.fitto.user.domain.SocialType;
 import com.fitto.user.domain.User;
@@ -32,6 +33,7 @@ public class AuthService {
     private final RelationRepository relationRepository;
     private final WorkoutRepository workoutRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final StreakRepository streakRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
@@ -39,12 +41,14 @@ public class AuthService {
                        RelationRepository relationRepository,
                        WorkoutRepository workoutRepository,
                        ChatMessageRepository chatMessageRepository,
+                       StreakRepository streakRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.relationRepository = relationRepository;
         this.workoutRepository = workoutRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.streakRepository = streakRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
@@ -105,8 +109,10 @@ public class AuthService {
     public void withdraw(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
-        // 의존 데이터 정리 후 계정 삭제 (FK 순서: 메시지 → 운동 → 관계 → 사용자)
+        // 의존 데이터 정리 후 계정 삭제 (FK 순서: 메시지/스트릭 → 운동 → 관계 → 사용자)
         chatMessageRepository.deleteAllByUserRelations(userId);
+        streakRepository.deleteAllByUserId(userId);
+        streakRepository.deleteAllByUserRelations(userId);
         workoutRepository.deleteAllByUserId(userId);
         relationRepository.deleteAllByUser(userId);
         userRepository.delete(user);

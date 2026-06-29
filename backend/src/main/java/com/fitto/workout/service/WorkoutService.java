@@ -6,6 +6,7 @@ import com.fitto.relation.domain.Relation;
 import com.fitto.relation.domain.RelationStatus;
 import com.fitto.relation.domain.RelationType;
 import com.fitto.relation.repository.RelationRepository;
+import com.fitto.streak.service.StreakService;
 import com.fitto.user.repository.UserRepository;
 import com.fitto.workout.domain.Workout;
 import com.fitto.workout.domain.WorkoutSet;
@@ -34,13 +35,16 @@ public class WorkoutService {
     private final WorkoutRepository workoutRepository;
     private final RelationRepository relationRepository;
     private final UserRepository userRepository;
+    private final StreakService streakService;
 
     public WorkoutService(WorkoutRepository workoutRepository,
                           RelationRepository relationRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          StreakService streakService) {
         this.workoutRepository = workoutRepository;
         this.relationRepository = relationRepository;
         this.userRepository = userRepository;
+        this.streakService = streakService;
     }
 
     @Transactional
@@ -66,6 +70,10 @@ public class WorkoutService {
             order++;
         }
         workoutRepository.save(workout);
+
+        // 스트릭 갱신 (개인 + 커플) — 설계서 GAME-01/02
+        streakService.updateOnWorkout(userId, workout.getWorkoutDate());
+
         return WorkoutResponse.from(workout);
     }
 
