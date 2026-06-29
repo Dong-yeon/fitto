@@ -11,8 +11,10 @@ Railway에 **PostgreSQL**, **Redis** 플러그인을 이미 추가한 상태를 
 
 1. Railway 프로젝트 → **New → GitHub Repo** → `Dong-yeon/fitto` 선택
 2. 서비스 **Settings → Root Directory** 를 **`backend`** 로 지정 (모노레포이므로 필수)
-3. 빌드: Railway Nixpacks 가 Gradle(`gradlew`)을 자동 감지해 빌드/실행합니다.
-   - (선택) 결정적 빌드가 필요하면 `backend/`에 Dockerfile 을 추가해도 됩니다.
+3. 빌드: `backend/Dockerfile` 이 포함되어 있어 Railway 가 이를 사용합니다
+   (railpack/Nixpacks 자동 감지 대신 Dockerfile 로 결정적 빌드).
+   - Root Directory 가 `backend` 여야 이 Dockerfile 이 인식됩니다.
+   - 빌드 실패 시 가장 흔한 원인은 Root Directory 미설정입니다.
 
 ## 2. 환경변수 설정 (백엔드 서비스 → Variables)
 
