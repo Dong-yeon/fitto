@@ -79,6 +79,19 @@ export interface Workout {
   sets: WorkoutSet[];
 }
 
+// 캘린더 응답 (4.4 GET /workout/calendar)
+export interface CalendarDay {
+  date: string;
+  completed: boolean;
+}
+
+// 커플 상대방 오늘 운동 여부 (홈 커플 카드)
+export interface PartnerToday {
+  connected: boolean;
+  partnerName: string | null;
+  completed: boolean;
+}
+
 // 5.7 trainer_routines
 export interface TrainerRoutine {
   id: number;

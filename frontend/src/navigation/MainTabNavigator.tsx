@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from './types';
 import { colors } from '../constants/theme';
 import { HomeStackNavigator } from './HomeStackNavigator';
-import { WorkoutScreen } from '../screens/workout/WorkoutScreen';
+import { WorkoutStackNavigator } from './WorkoutStackNavigator';
 import { ChatScreen } from '../screens/chat/ChatScreen';
 import { MyScreen } from '../screens/my/MyScreen';
 
@@ -33,7 +33,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Workout"
-        component={WorkoutScreen}
+        component={WorkoutStackNavigator}
         options={{ title: '운동', tabBarIcon: icon('💪') }}
       />
       <Tab.Screen

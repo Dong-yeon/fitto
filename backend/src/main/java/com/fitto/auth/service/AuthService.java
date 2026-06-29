@@ -12,6 +12,7 @@ import com.fitto.user.domain.Role;
 import com.fitto.user.domain.SocialType;
 import com.fitto.user.domain.User;
 import com.fitto.user.repository.UserRepository;
+import com.fitto.workout.repository.WorkoutRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,15 +29,18 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RelationRepository relationRepository;
+    private final WorkoutRepository workoutRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
     public AuthService(UserRepository userRepository,
                        RelationRepository relationRepository,
+                       WorkoutRepository workoutRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.relationRepository = relationRepository;
+        this.workoutRepository = workoutRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
@@ -97,6 +101,8 @@ public class AuthService {
     public void withdraw(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
+        // 의존 데이터 정리 후 계정 삭제 (workout_sets 는 DB ON DELETE CASCADE)
+        workoutRepository.deleteAllByUserId(userId);
         relationRepository.deleteAllByUser(userId);
         userRepository.delete(user);
     }

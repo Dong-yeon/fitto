@@ -1,5 +1,5 @@
 /** 홈 — 설계서 v2.0 2.2~2.3. phase 2: 커플 연결 상태 + 진입. (스트릭/운동현황은 phase 5) */
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,8 @@ import type { HomeStackParamList, MainTabParamList } from '../../navigation/type
 import { Button } from '../../components/Button';
 import { useAuthStore } from '../../store/authStore';
 import { useRelationStore } from '../../store/relationStore';
+import { workoutApi } from '../../api/workout';
+import type { PartnerToday } from '../../types';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 
 type Props = CompositeScreenProps<
@@ -20,10 +22,15 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const user = useAuthStore((s) => s.user);
   const { couple, loading, fetchAll } = useRelationStore();
+  const [partner, setPartner] = useState<PartnerToday | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       fetchAll();
+      workoutApi
+        .partnerToday()
+        .then(setPartner)
+        .catch(() => setPartner(null));
     }, [fetchAll]),
   );
 
@@ -39,9 +46,20 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.card}>
           {couple?.partner ? (
             <>
-              <Text style={styles.cardTitle}>💞 커플 연결됨</Text>
-              <Text style={styles.partnerName}>{couple.partner.name} 님과 함께하는 중</Text>
-              <Text style={styles.hint}>운동 현황과 스트릭은 다음 단계에서 추가됩니다.</Text>
+              <Text style={styles.cardTitle}>💞 {couple.partner.name} 님과 함께하는 중</Text>
+              <View style={styles.statusRow}>
+                <View style={styles.statusItem}>
+                  <Text style={styles.statusLabel}>나</Text>
+                  <Text style={styles.statusValue}>오늘 운동을 기록해보세요</Text>
+                </View>
+                <View style={styles.statusItem}>
+                  <Text style={styles.statusLabel}>{partner?.partnerName ?? '상대방'}</Text>
+                  <Text style={[styles.statusValue, partner?.completed && styles.statusDone]}>
+                    {partner?.completed ? '✅ 오늘 운동 완료!' : '아직 운동 전'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.hint}>커플 스트릭은 다음 단계에서 추가됩니다.</Text>
             </>
           ) : (
             <>
@@ -74,12 +92,16 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   cardTitle: { fontSize: fontSize.subtitle, fontWeight: '700', color: colors.textPrimary },
-  partnerName: {
-    fontSize: fontSize.body,
-    color: colors.primary,
-    marginTop: spacing.sm,
-    fontWeight: '600',
+  statusRow: { flexDirection: 'row', marginTop: spacing.md, gap: spacing.md },
+  statusItem: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    padding: spacing.md,
   },
-  hint: { fontSize: fontSize.caption, color: colors.textSecondary, marginTop: spacing.sm },
+  statusLabel: { fontSize: fontSize.caption, color: colors.textSecondary, fontWeight: '600' },
+  statusValue: { fontSize: fontSize.body, color: colors.textPrimary, marginTop: spacing.xs },
+  statusDone: { color: colors.success, fontWeight: '700' },
+  hint: { fontSize: fontSize.caption, color: colors.textSecondary, marginTop: spacing.md },
   connectBtn: { marginTop: spacing.md },
 });

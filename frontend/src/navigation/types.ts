@@ -14,10 +14,17 @@ export type HomeStackParamList = {
   CoupleConnect: undefined;
 };
 
+// 운동 탭 내부 스택 — 기록 입력 / 캘린더 (WORKOUT-01/04)
+export type WorkoutStackParamList = {
+  WorkoutMain: undefined;
+  WorkoutRecord: undefined;
+  WorkoutCalendar: undefined;
+};
+
 // 2.2 메인 탭 (홈/운동/채팅/MY)
 export type MainTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>;
-  Workout: undefined;
+  Workout: NavigatorScreenParams<WorkoutStackParamList>;
   Chat: undefined;
   My: undefined;
 };
