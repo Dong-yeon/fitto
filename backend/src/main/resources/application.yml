@@ -27,14 +27,17 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
-  # Redis (초대코드/세션/소켓 — 설계서 6.1)
+  # Redis (초대코드/세션/소켓 — 설계서 6.1).
+  # 로컬은 host/port 사용. 클라우드(Railway 등)는 SPRING_DATA_REDIS_URL 환경변수
+  # (redis://default:password@host:port)로 덮어쓰면 인증까지 자동 처리된다.
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
 server:
-  port: 8080
+  # 클라우드(Railway 등)는 PORT 환경변수로 리스닝 포트를 주입한다.
+  port: ${PORT:8080}
 
 # 애플리케이션 커스텀 설정
 fitto:

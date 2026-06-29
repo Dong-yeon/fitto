@@ -90,3 +90,9 @@ cd frontend && npm install && npm start   # a: Android, i: iOS, w: Web
 - 백엔드 환경변수: `backend/.env.example` 참고 (`DB_*`, `REDIS_*`, `JWT_SECRET`)
 - 앱 API 주소: `frontend/src/constants/config.ts` (iOS/웹=localhost, Android 에뮬=10.0.2.2, 실기기=PC LAN IP)
 - 커플·채팅 기능 확인에는 계정 2개가 필요합니다.
+
+### 클라우드 배포 (Railway)
+
+`DATABASE_URL`(URI)이 있으면 자동으로 클라우드 DB에 연결됩니다(없으면 로컬 설정 사용).
+Railway 배포 단계는 **[docs/RAILWAY.md](docs/RAILWAY.md)** 참고 — 백엔드 서비스 Root Directory=`backend`,
+변수 `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `SPRING_DATA_REDIS_URL=${{Redis.REDIS_URL}}`, `JWT_SECRET` 설정.
