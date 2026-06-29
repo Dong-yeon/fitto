@@ -6,7 +6,7 @@ import type { MainTabParamList } from './types';
 import { colors } from '../constants/theme';
 import { HomeStackNavigator } from './HomeStackNavigator';
 import { WorkoutStackNavigator } from './WorkoutStackNavigator';
-import { ChatScreen } from '../screens/chat/ChatScreen';
+import { ChatStackNavigator } from './ChatStackNavigator';
 import { MyScreen } from '../screens/my/MyScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -38,7 +38,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
+        component={ChatStackNavigator}
         options={{ title: '채팅', tabBarIcon: icon('💬') }}
       />
       <Tab.Screen

@@ -8,7 +8,8 @@ import { Platform } from 'react-native';
 const LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
 export const API_BASE_URL = `http://${LOCAL_HOST}:8080/api/v1`;
-export const WS_BASE_URL = `http://${LOCAL_HOST}:8080/ws/chat`;
+// STOMP over WebSocket — 설계서 4.5 (@stomp/stompjs brokerURL 은 ws:// 스킴)
+export const WS_BASE_URL = `ws://${LOCAL_HOST}:8080/ws/chat`;
 
 export const STORAGE_KEYS = {
   accessToken: 'fitto.accessToken',

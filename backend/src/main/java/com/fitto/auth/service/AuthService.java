@@ -4,6 +4,7 @@ import com.fitto.auth.dto.LoginRequest;
 import com.fitto.auth.dto.RegisterRequest;
 import com.fitto.auth.dto.TokenResponse;
 import com.fitto.auth.dto.UserResponse;
+import com.fitto.chat.repository.ChatMessageRepository;
 import com.fitto.common.exception.BusinessException;
 import com.fitto.common.exception.ErrorCode;
 import com.fitto.common.security.JwtTokenProvider;
@@ -30,17 +31,20 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RelationRepository relationRepository;
     private final WorkoutRepository workoutRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
     public AuthService(UserRepository userRepository,
                        RelationRepository relationRepository,
                        WorkoutRepository workoutRepository,
+                       ChatMessageRepository chatMessageRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.relationRepository = relationRepository;
         this.workoutRepository = workoutRepository;
+        this.chatMessageRepository = chatMessageRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
@@ -101,7 +105,8 @@ public class AuthService {
     public void withdraw(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
-        // 의존 데이터 정리 후 계정 삭제 (workout_sets 는 DB ON DELETE CASCADE)
+        // 의존 데이터 정리 후 계정 삭제 (FK 순서: 메시지 → 운동 → 관계 → 사용자)
+        chatMessageRepository.deleteAllByUserRelations(userId);
         workoutRepository.deleteAllByUserId(userId);
         relationRepository.deleteAllByUser(userId);
         userRepository.delete(user);

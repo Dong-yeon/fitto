@@ -21,11 +21,17 @@ export type WorkoutStackParamList = {
   WorkoutCalendar: undefined;
 };
 
+// 채팅 탭 내부 스택 — 방 목록 / 대화 (CHAT-01/02)
+export type ChatStackParamList = {
+  ChatRooms: undefined;
+  ChatRoom: { relationId: number; title: string };
+};
+
 // 2.2 메인 탭 (홈/운동/채팅/MY)
 export type MainTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>;
   Workout: NavigatorScreenParams<WorkoutStackParamList>;
-  Chat: undefined;
+  Chat: NavigatorScreenParams<ChatStackParamList>;
   My: undefined;
 };
 

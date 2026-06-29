@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../constants/config';
 import { authApi, RegisterPayload } from '../api/auth';
+import { useChatStore } from './chatStore';
 import type { AuthTokens, User } from '../types';
 
 interface AuthState {
@@ -23,6 +24,8 @@ interface AuthState {
 async function clearTokens() {
   await SecureStore.deleteItemAsync(STORAGE_KEYS.accessToken);
   await SecureStore.deleteItemAsync(STORAGE_KEYS.refreshToken);
+  // 세션 종료 시 채팅 소켓 정리
+  useChatStore.getState().teardown();
 }
 
 async function persistTokens(tokens: AuthTokens) {
