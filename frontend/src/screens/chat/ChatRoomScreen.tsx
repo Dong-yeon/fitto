@@ -88,6 +88,7 @@ export function ChatRoomScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <FlatList
+          style={styles.flex}
           data={messages}
           inverted
           keyExtractor={(m) => String(m.id)}
