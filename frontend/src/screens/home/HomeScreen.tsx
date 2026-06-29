@@ -42,9 +42,11 @@ export function HomeScreen({ navigation }: Props) {
   const [partner, setPartner] = useState<PartnerToday | null>(null);
   const [myStreak, setMyStreak] = useState<Streak | null>(null);
   const [coupleStreak, setCoupleStreak] = useState<Streak | null>(null);
+  const [myCompletedToday, setMyCompletedToday] = useState(false);
 
   const refresh = useCallback(() => {
     fetchAll();
+    workoutApi.today().then((list) => setMyCompletedToday(list.length > 0)).catch(() => setMyCompletedToday(false));
     workoutApi.partnerToday().then(setPartner).catch(() => setPartner(null));
     streakApi.me().then(setMyStreak).catch(() => setMyStreak(null));
     streakApi.couple().then(setCoupleStreak).catch(() => setCoupleStreak(null));
@@ -85,7 +87,9 @@ export function HomeScreen({ navigation }: Props) {
               <View style={styles.statusRow}>
                 <View style={styles.statusItem}>
                   <Text style={styles.statusLabel}>나</Text>
-                  <Text style={styles.statusValue}>오늘 운동을 기록해보세요</Text>
+                  <Text style={[styles.statusValue, myCompletedToday && styles.statusDone]}>
+                    {myCompletedToday ? '✅ 오늘 운동 완료!' : '아직 운동 전'}
+                  </Text>
                 </View>
                 <View style={styles.statusItem}>
                   <Text style={styles.statusLabel}>{partner?.partnerName ?? '상대방'}</Text>
