@@ -3,10 +3,10 @@
  * 토큰은 SecureStore, 사용자 정보는 메모리 보관.
  */
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../constants/config';
 import { authApi, RegisterPayload } from '../api/auth';
 import { setAuthFailureHandler } from '../api/client';
+import { storage } from '../utils/storage';
 import { useChatStore } from './chatStore';
 import type { AuthTokens, User } from '../types';
 
@@ -23,15 +23,15 @@ interface AuthState {
 }
 
 async function clearTokens() {
-  await SecureStore.deleteItemAsync(STORAGE_KEYS.accessToken);
-  await SecureStore.deleteItemAsync(STORAGE_KEYS.refreshToken);
+  await storage.removeItem(STORAGE_KEYS.accessToken);
+  await storage.removeItem(STORAGE_KEYS.refreshToken);
   // 세션 종료 시 채팅 소켓 정리
   useChatStore.getState().teardown();
 }
 
 async function persistTokens(tokens: AuthTokens) {
-  await SecureStore.setItemAsync(STORAGE_KEYS.accessToken, tokens.accessToken);
-  await SecureStore.setItemAsync(STORAGE_KEYS.refreshToken, tokens.refreshToken);
+  await storage.setItem(STORAGE_KEYS.accessToken, tokens.accessToken);
+  await storage.setItem(STORAGE_KEYS.refreshToken, tokens.refreshToken);
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // 앱 시작 시 저장된 토큰 확인 후 프로필 복원
   bootstrap: async () => {
-    const token = await SecureStore.getItemAsync(STORAGE_KEYS.accessToken);
+    const token = await storage.getItem(STORAGE_KEYS.accessToken);
     if (!token) {
       set({ isAuthenticated: false, isLoading: false });
       return;

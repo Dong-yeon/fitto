@@ -5,8 +5,8 @@
  * - refresh 실패 시 토큰 정리 + 인증 실패 콜백(로그아웃) 호출.
  */
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, STORAGE_KEYS } from '../constants/config';
+import { storage } from '../utils/storage';
 import type { ApiResponse, AuthTokens } from '../types';
 
 export const apiClient = axios.create({
@@ -23,7 +23,7 @@ export function setAuthFailureHandler(handler: () => void) {
 
 // 요청 인터셉터: access token 첨부
 apiClient.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync(STORAGE_KEYS.accessToken);
+  const token = await storage.getItem(STORAGE_KEYS.accessToken);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -34,15 +34,15 @@ apiClient.interceptors.request.use(async (config) => {
 let refreshPromise: Promise<string> | null = null;
 
 async function refreshAccessToken(): Promise<string> {
-  const refreshToken = await SecureStore.getItemAsync(STORAGE_KEYS.refreshToken);
+  const refreshToken = await storage.getItem(STORAGE_KEYS.refreshToken);
   if (!refreshToken) throw new Error('refresh token 없음');
   const { data } = await axios.post<ApiResponse<AuthTokens>>(
     `${API_BASE_URL}/auth/refresh`,
     {},
     { headers: { Authorization: `Bearer ${refreshToken}` } },
   );
-  await SecureStore.setItemAsync(STORAGE_KEYS.accessToken, data.data.accessToken);
-  await SecureStore.setItemAsync(STORAGE_KEYS.refreshToken, data.data.refreshToken);
+  await storage.setItem(STORAGE_KEYS.accessToken, data.data.accessToken);
+  await storage.setItem(STORAGE_KEYS.refreshToken, data.data.refreshToken);
   return data.data.accessToken;
 }
 
@@ -66,8 +66,8 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshError) {
       // refresh 실패 → 세션 종료
-      await SecureStore.deleteItemAsync(STORAGE_KEYS.accessToken);
-      await SecureStore.deleteItemAsync(STORAGE_KEYS.refreshToken);
+      await storage.removeItem(STORAGE_KEYS.accessToken);
+      await storage.removeItem(STORAGE_KEYS.refreshToken);
       onAuthFailure?.();
       return Promise.reject(refreshError);
     }

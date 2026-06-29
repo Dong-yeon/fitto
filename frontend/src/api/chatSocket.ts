@@ -3,8 +3,8 @@
  * /pub/chat/{relationId} 로 발행, /sub/rooms/{relationId} 구독.
  */
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
-import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS, WS_BASE_URL } from '../constants/config';
+import { storage } from '../utils/storage';
 import type { ChatMessage, MessageType } from '../types';
 
 let client: Client | null = null;
@@ -25,7 +25,7 @@ export async function connectSocket(): Promise<Client> {
   if (connecting) return connecting; // 진행 중인 연결 공유 (중복 Client 생성 방지)
 
   connecting = (async () => {
-    const token = await SecureStore.getItemAsync(STORAGE_KEYS.accessToken);
+    const token = await storage.getItem(STORAGE_KEYS.accessToken);
     const c = new Client({
       brokerURL: WS_BASE_URL,
       connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
