@@ -8,6 +8,7 @@ import { STORAGE_KEYS, WS_BASE_URL } from '../constants/config';
 import type { ChatMessage, MessageType } from '../types';
 
 let client: Client | null = null;
+let connecting: Promise<Client> | null = null;
 const subscriptions = new Map<number, StompSubscription>();
 
 export interface OutgoingMessage {
@@ -18,27 +19,34 @@ export interface OutgoingMessage {
   routineId?: number;
 }
 
-/** 소켓 연결 (이미 연결돼 있으면 재사용). */
+/** 소켓 연결 (이미 연결됐거나 연결 중이면 재사용). */
 export async function connectSocket(): Promise<Client> {
   if (client?.connected) return client;
+  if (connecting) return connecting; // 진행 중인 연결 공유 (중복 Client 생성 방지)
 
-  const token = await SecureStore.getItemAsync(STORAGE_KEYS.accessToken);
-  const c = new Client({
-    brokerURL: WS_BASE_URL,
-    connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-    reconnectDelay: 3000,
-    // React Native WebSocket 호환 플래그
-    forceBinaryWSFrames: true,
-    appendMissingNULLonIncoming: true,
-  });
-  client = c;
+  connecting = (async () => {
+    const token = await SecureStore.getItemAsync(STORAGE_KEYS.accessToken);
+    const c = new Client({
+      brokerURL: WS_BASE_URL,
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+      reconnectDelay: 3000,
+      // React Native WebSocket 호환 플래그
+      forceBinaryWSFrames: true,
+      appendMissingNULLonIncoming: true,
+    });
+    client = c;
 
-  return new Promise((resolve, reject) => {
-    c.onConnect = () => resolve(c);
-    c.onStompError = (frame) => reject(new Error(frame.headers['message'] ?? 'STOMP 오류'));
-    c.onWebSocketError = () => reject(new Error('WebSocket 연결 실패'));
-    c.activate();
+    return new Promise<Client>((resolve, reject) => {
+      c.onConnect = () => resolve(c);
+      c.onStompError = (frame) => reject(new Error(frame.headers['message'] ?? 'STOMP 오류'));
+      c.onWebSocketError = () => reject(new Error('WebSocket 연결 실패'));
+      c.activate();
+    });
+  })().finally(() => {
+    connecting = null;
   });
+
+  return connecting;
 }
 
 export function subscribeRoom(relationId: number, onMessage: (msg: ChatMessage) => void) {
@@ -73,4 +81,5 @@ export function disconnectSocket() {
   subscriptions.clear();
   client?.deactivate();
   client = null;
+  connecting = null;
 }

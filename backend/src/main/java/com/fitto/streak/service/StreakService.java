@@ -10,6 +10,7 @@ import com.fitto.streak.dto.StreakResponse;
 import com.fitto.streak.repository.StreakRepository;
 import com.fitto.workout.repository.WorkoutRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -36,8 +37,11 @@ public class StreakService {
         this.workoutRepository = workoutRepository;
     }
 
-    /** 운동 저장 시 호출 — 개인/커플 스트릭 갱신. */
-    @Transactional
+    /**
+     * 운동 저장 시 호출 — 개인/커플 스트릭 갱신.
+     * 별도 트랜잭션(REQUIRES_NEW): 유니크 경합으로 실패해도 운동 저장은 보존된다.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateOnWorkout(Long userId, LocalDate date) {
         // 개인 스트릭
         Streak personal = streakRepository.findByUserIdAndStreakType(userId, StreakType.PERSONAL)

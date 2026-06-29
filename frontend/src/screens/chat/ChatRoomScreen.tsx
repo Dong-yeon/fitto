@@ -1,6 +1,7 @@
 /** 채팅 대화 — 설계서 2.5 / 4.5 CHAT-02 (실시간 메시지) */
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -33,6 +34,8 @@ export function ChatRoomScreen({ navigation, route }: Props) {
   const messages = useChatStore((s) => s.messages[relationId] ?? []);
   const { openRoom, closeRoom, send, markRead } = useChatStore();
   const [text, setText] = useState('');
+  // 이미 읽음 처리한 최대 메시지 id — 중복 PUT 방지
+  const markedUpToRef = useRef(0);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title });
@@ -43,11 +46,14 @@ export function ChatRoomScreen({ navigation, route }: Props) {
     return () => closeRoom(relationId);
   }, [relationId, openRoom, closeRoom]);
 
-  // 새 메시지 도착 시 상대방 최신 메시지를 읽음 처리
+  // 새 메시지 도착 시 상대방 최신 메시지까지 읽음 처리 (id 게이트로 중복 호출 방지)
   useEffect(() => {
-    const latestIncoming = messages.find((m) => m.senderId !== myId && !m.isRead);
-    if (latestIncoming) {
-      markRead(latestIncoming.id).catch(() => undefined);
+    const latestIncoming = messages.find((m) => m.senderId !== myId); // 최신순이라 첫 항목
+    if (latestIncoming && latestIncoming.id > markedUpToRef.current) {
+      markedUpToRef.current = latestIncoming.id;
+      markRead(latestIncoming.id).catch(() => {
+        markedUpToRef.current = 0; // 실패 시 다음 변경에서 재시도
+      });
     }
   }, [messages, myId, markRead]);
 
@@ -55,7 +61,11 @@ export function ChatRoomScreen({ navigation, route }: Props) {
     const content = text.trim();
     if (!content) return;
     const ok = send(relationId, { messageType: 'TEXT', content });
-    if (ok) setText('');
+    if (ok) {
+      setText('');
+    } else {
+      Alert.alert('전송 실패', '연결이 끊겼어요. 잠시 후 다시 시도해주세요.');
+    }
   };
 
   const renderItem = ({ item }: { item: ChatMessage }) => {

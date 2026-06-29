@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../constants/config';
 import { authApi, RegisterPayload } from '../api/auth';
+import { setAuthFailureHandler } from '../api/client';
 import { useChatStore } from './chatStore';
 import type { AuthTokens, User } from '../types';
 
@@ -85,3 +86,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }));
+
+// refresh 실패 시(client 인터셉터) 세션을 비인증으로 전환. 토큰은 이미 정리됨.
+setAuthFailureHandler(() => {
+  useChatStore.getState().teardown();
+  useAuthStore.setState({ user: null, isAuthenticated: false });
+});

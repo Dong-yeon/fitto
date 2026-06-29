@@ -15,6 +15,8 @@ import com.fitto.workout.dto.PartnerTodayResponse;
 import com.fitto.workout.dto.SaveWorkoutRequest;
 import com.fitto.workout.dto.WorkoutResponse;
 import com.fitto.workout.repository.WorkoutRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class WorkoutService {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkoutService.class);
     private static final int HISTORY_PAGE_SIZE = 20;
 
     private final WorkoutRepository workoutRepository;
@@ -49,6 +52,9 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutResponse save(Long userId, SaveWorkoutRequest req) {
+        if (req.workoutDate().isAfter(LocalDate.now())) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "미래 날짜는 기록할 수 없습니다.");
+        }
         Workout workout = Workout.builder()
                 .userId(userId)
                 .relationId(req.relationId())
@@ -71,8 +77,14 @@ public class WorkoutService {
         }
         workoutRepository.save(workout);
 
-        // 스트릭 갱신 (개인 + 커플) — 설계서 GAME-01/02
-        streakService.updateOnWorkout(userId, workout.getWorkoutDate());
+        // 스트릭 갱신 (개인 + 커플) — 설계서 GAME-01/02.
+        // 별도 트랜잭션이며, 경합 등으로 실패해도 운동 저장은 유지한다.
+        try {
+            streakService.updateOnWorkout(userId, workout.getWorkoutDate());
+        } catch (RuntimeException e) {
+            log.warn("스트릭 갱신 실패 (운동은 저장됨) userId={}, date={}: {}",
+                    userId, workout.getWorkoutDate(), e.getMessage());
+        }
 
         return WorkoutResponse.from(workout);
     }

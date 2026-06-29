@@ -31,8 +31,11 @@ public class ChatStompController {
     public void send(@DestinationVariable Long relationId,
                      @Payload SendMessageRequest request,
                      Principal principal) {
-        Long senderId = ((StompPrincipal) principal).userId();
-        ChatMessageResponse saved = chatService.send(senderId, relationId, request);
+        // 인증되지 않은 세션이면 무시 (CONNECT 단계에서 JWT 검증되지만 방어적 처리)
+        if (!(principal instanceof StompPrincipal stompPrincipal)) {
+            return;
+        }
+        ChatMessageResponse saved = chatService.send(stompPrincipal.userId(), relationId, request);
         messagingTemplate.convertAndSend("/sub/rooms/" + relationId, saved);
     }
 }

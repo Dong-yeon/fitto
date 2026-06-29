@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +25,10 @@ import java.time.LocalDateTime;
  * 개인(user_id) 또는 커플(relation_id) 중 하나로 식별.
  */
 @Entity
-@Table(name = "streaks")
+@Table(name = "streaks", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_streaks_user_type", columnNames = {"user_id", "streak_type"}),
+        @UniqueConstraint(name = "uq_streaks_relation", columnNames = {"relation_id"})
+})
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
