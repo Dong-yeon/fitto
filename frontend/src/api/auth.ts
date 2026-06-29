@@ -20,6 +20,12 @@ export const authApi = {
     unwrap(apiClient.post<ApiResponse<AuthTokens>>('/auth/login', { email, password })),
   register: (payload: RegisterPayload) =>
     unwrap(apiClient.post<ApiResponse<AuthTokens>>('/auth/register', payload)),
-  logout: () => unwrap(apiClient.post<ApiResponse<void>>('/auth/logout')),
+  refresh: (refreshToken: string) =>
+    unwrap(
+      apiClient.post<ApiResponse<AuthTokens>>('/auth/refresh', {}, {
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      }),
+    ),
+  // v2.0: 로그아웃 엔드포인트 없음 — 클라이언트에서 토큰 삭제로 처리
   withdraw: () => unwrap(apiClient.delete<ApiResponse<void>>('/auth/withdraw')),
 };

@@ -17,6 +17,11 @@ spring:
         format_sql: true
     open-in-view: false
 
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false   # 클라이언트의 부가 필드는 무시
+    default-property-inclusion: non_null
+
   # Flyway 마이그레이션 (DB 구성)
   flyway:
     enabled: true

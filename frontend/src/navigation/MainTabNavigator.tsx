@@ -4,7 +4,7 @@ import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from './types';
 import { colors } from '../constants/theme';
-import { HomeScreen } from '../screens/home/HomeScreen';
+import { HomeStackNavigator } from './HomeStackNavigator';
 import { WorkoutScreen } from '../screens/workout/WorkoutScreen';
 import { ChatScreen } from '../screens/chat/ChatScreen';
 import { MyScreen } from '../screens/my/MyScreen';
@@ -28,7 +28,7 @@ export function MainTabNavigator() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStackNavigator}
         options={{ title: '홈', tabBarIcon: icon('🏠') }}
       />
       <Tab.Screen

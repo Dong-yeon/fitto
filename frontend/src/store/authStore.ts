@@ -16,7 +16,13 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  withdraw: () => Promise<void>;
   setSession: (tokens: AuthTokens) => Promise<void>;
+}
+
+async function clearTokens() {
+  await SecureStore.deleteItemAsync(STORAGE_KEYS.accessToken);
+  await SecureStore.deleteItemAsync(STORAGE_KEYS.refreshToken);
 }
 
 async function persistTokens(tokens: AuthTokens) {
@@ -50,12 +56,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().setSession(tokens);
   },
 
+  // v2.0: 로그아웃은 클라이언트에서 토큰만 삭제
   logout: async () => {
+    await clearTokens();
+    set({ user: null, isAuthenticated: false });
+  },
+
+  withdraw: async () => {
     try {
-      await authApi.logout();
+      await authApi.withdraw();
     } finally {
-      await SecureStore.deleteItemAsync(STORAGE_KEYS.accessToken);
-      await SecureStore.deleteItemAsync(STORAGE_KEYS.refreshToken);
+      await clearTokens();
       set({ user: null, isAuthenticated: false });
     }
   },
