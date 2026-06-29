@@ -73,23 +73,20 @@ chat_messages / streaks)에 정의되어 있습니다.
 
 ## 실행 방법
 
-### 백엔드
+전체 단계는 **[docs/RUNNING.md](docs/RUNNING.md)** 참고. 요약:
 
 ```bash
-cd backend
-# PostgreSQL, Redis 가 로컬에 실행 중이어야 합니다 (기본: localhost:5432 / 6379)
-./gradlew bootRun
-# 헬스 체크: GET http://localhost:8080/api/v1/health
+# 1) 인프라 (PostgreSQL + Redis)
+docker compose up -d
+
+# 2) 백엔드 (스키마는 Flyway 자동 생성)
+cd backend && ./gradlew bootRun
+#   확인: curl http://localhost:8080/api/v1/health
+
+# 3) 프론트엔드
+cd frontend && npm install && npm start   # a: Android, i: iOS, w: Web
 ```
 
-환경변수: `DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD`, `REDIS_HOST/REDIS_PORT`, `JWT_SECRET`.
-
-### 프론트엔드
-
-```bash
-cd frontend
-npm install
-npm start        # Expo 개발 서버 (a: Android, i: iOS, w: Web)
-```
-
-API 기본 URL은 `src/constants/config.ts` 에서 설정합니다 (개발 시 `localhost:8080`).
+- 백엔드 환경변수: `backend/.env.example` 참고 (`DB_*`, `REDIS_*`, `JWT_SECRET`)
+- 앱 API 주소: `frontend/src/constants/config.ts` (iOS/웹=localhost, Android 에뮬=10.0.2.2, 실기기=PC LAN IP)
+- 커플·채팅 기능 확인에는 계정 2개가 필요합니다.

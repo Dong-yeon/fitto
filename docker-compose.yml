@@ -1,0 +1,34 @@
+# Fitto 로컬 개발 인프라 (PostgreSQL + Redis)
+# 실행:  docker compose up -d
+# 종료:  docker compose down   (데이터 삭제: docker compose down -v)
+services:
+  postgres:
+    image: postgres:16
+    container_name: fitto-postgres
+    environment:
+      POSTGRES_USER: fitto
+      POSTGRES_PASSWORD: fitto
+      POSTGRES_DB: fitto
+    ports:
+      - "5432:5432"
+    volumes:
+      - fitto-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitto -d fitto"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: fitto-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  fitto-pgdata:
