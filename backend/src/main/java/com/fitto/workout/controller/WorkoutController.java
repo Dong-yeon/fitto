@@ -1,0 +1,70 @@
+package com.fitto.workout.controller;
+
+import com.fitto.common.response.ApiResponse;
+import com.fitto.common.security.AuthUser;
+import com.fitto.workout.dto.CalendarDayResponse;
+import com.fitto.workout.dto.PartnerTodayResponse;
+import com.fitto.workout.dto.SaveWorkoutRequest;
+import com.fitto.workout.dto.WorkoutResponse;
+import com.fitto.workout.service.WorkoutService;
+import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+/**
+ * 운동 기록 API — 설계서 4.4. 트레이너 루틴/회원조회 엔드포인트는 phase 7.
+ */
+@RestController
+@RequestMapping("/api/v1/workout")
+public class WorkoutController {
+
+    private final WorkoutService workoutService;
+
+    public WorkoutController(WorkoutService workoutService) {
+        this.workoutService = workoutService;
+    }
+
+    @PostMapping
+    public ApiResponse<WorkoutResponse> save(@AuthenticationPrincipal AuthUser user,
+                                             @Valid @RequestBody SaveWorkoutRequest request) {
+        return ApiResponse.success(workoutService.save(user.id(), request), "운동 기록이 저장되었습니다.");
+    }
+
+    @GetMapping("/today")
+    public ApiResponse<List<WorkoutResponse>> today(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(workoutService.findToday(user.id()));
+    }
+
+    @GetMapping("/history")
+    public ApiResponse<List<WorkoutResponse>> history(@AuthenticationPrincipal AuthUser user,
+                                                      @RequestParam(required = false) Long cursor) {
+        return ApiResponse.success(workoutService.findHistory(user.id(), cursor));
+    }
+
+    @GetMapping("/calendar")
+    public ApiResponse<List<CalendarDayResponse>> calendar(@AuthenticationPrincipal AuthUser user,
+                                                           @RequestParam int year,
+                                                           @RequestParam int month) {
+        return ApiResponse.success(workoutService.calendar(user.id(), year, month));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@AuthenticationPrincipal AuthUser user, @PathVariable Long id) {
+        workoutService.delete(user.id(), id);
+        return ApiResponse.success(null, "운동 기록이 삭제되었습니다.");
+    }
+
+    @GetMapping("/partner/today")
+    public ApiResponse<PartnerTodayResponse> partnerToday(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(workoutService.partnerToday(user.id()));
+    }
+}

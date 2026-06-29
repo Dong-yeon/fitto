@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: fitto
+
+  # PostgreSQL (설계서 6.1) — 환경변수로 주입, 기본값은 로컬 개발
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fitto}
+    username: ${DB_USERNAME:fitto}
+    password: ${DB_PASSWORD:fitto}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # 스키마는 Flyway가 관리
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false   # 클라이언트의 부가 필드는 무시
+    default-property-inclusion: non_null
+
+  # Flyway 마이그레이션 (DB 구성)
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  # Redis (초대코드/세션/소켓 — 설계서 6.1).
+  # 로컬은 host/port 사용. 클라우드(Railway 등)는 SPRING_DATA_REDIS_URL 환경변수
+  # (redis://default:password@host:port)로 덮어쓰면 인증까지 자동 처리된다.
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  # 클라우드(Railway 등)는 PORT 환경변수로 리스닝 포트를 주입한다.
+  port: ${PORT:8080}
+
+# 애플리케이션 커스텀 설정
+fitto:
+  jwt:
+    # 운영에서는 반드시 JWT_SECRET 환경변수로 주입. 미설정 시 dev 전용 값(운영 프로파일에서 부팅 차단).
+    secret: ${JWT_SECRET:dev-only-secret-change-me-in-production-0123456789}
+    access-token-expire-minutes: 30
+    refresh-token-expire-days: 14
+
+logging:
+  level:
+    com.fitto: DEBUG
