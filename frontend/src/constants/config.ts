@@ -1,15 +1,28 @@
 /**
- * 환경 설정. 실제 배포 시 app.json의 extra 또는 .env로 분리.
- * 설계서 4.1 — Base URL: /api/v1
+ * 환경 설정. 설계서 4.1 — Base URL: /api/v1
+ *
+ * 기본은 배포된 Railway 백엔드를 사용한다(휴대폰/Expo Go 에서 바로 동작).
+ * 로컬 백엔드로 테스트하려면 USE_LOCAL_BACKEND 를 true 로 바꾼다.
  */
 import { Platform } from 'react-native';
+
+// true → 로컬 백엔드(localhost/10.0.2.2:8080) / false → 배포된 Railway 백엔드
+const USE_LOCAL_BACKEND = false;
+
+// 배포된 백엔드 호스트 (Railway)
+const PROD_HOST = 'fitto-production.up.railway.app';
 
 // Android 에뮬레이터는 호스트 머신을 10.0.2.2 로 접근
 const LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
-export const API_BASE_URL = `http://${LOCAL_HOST}:8080/api/v1`;
-// STOMP over WebSocket — 설계서 4.5 (@stomp/stompjs brokerURL 은 ws:// 스킴)
-export const WS_BASE_URL = `ws://${LOCAL_HOST}:8080/ws/chat`;
+export const API_BASE_URL = USE_LOCAL_BACKEND
+  ? `http://${LOCAL_HOST}:8080/api/v1`
+  : `https://${PROD_HOST}/api/v1`;
+
+// STOMP over WebSocket — 설계서 4.5 (@stomp/stompjs brokerURL 스킴: 로컬 ws / 배포 wss)
+export const WS_BASE_URL = USE_LOCAL_BACKEND
+  ? `ws://${LOCAL_HOST}:8080/ws/chat`
+  : `wss://${PROD_HOST}/ws/chat`;
 
 export const STORAGE_KEYS = {
   accessToken: 'fitto.accessToken',
