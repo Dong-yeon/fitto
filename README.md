@@ -91,6 +91,11 @@ cd frontend && npm install && npm start   # a: Android, i: iOS, w: Web
 - 앱 API 주소: `frontend/src/constants/config.ts` (iOS/웹=localhost, Android 에뮬=10.0.2.2, 실기기=PC LAN IP)
 - 커플·채팅 기능 확인에는 계정 2개가 필요합니다.
 
+### 웹 배포 (빠른 공유 — PWA)
+
+`npm run build:web` → `frontend/dist/` 정적 빌드 → Netlify/Vercel 등에 배포하면
+폰 브라우저에서 URL로 바로 사용(앱스토어 불필요). 단계는 **[docs/WEB_DEPLOY.md](docs/WEB_DEPLOY.md)**.
+
 ### 클라우드 배포 (Railway)
 
 `DATABASE_URL`(URI)이 있으면 자동으로 클라우드 DB에 연결됩니다(없으면 로컬 설정 사용).

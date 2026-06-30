@@ -26,7 +26,14 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Fitto",
+      "shortName": "Fitto",
+      "lang": "ko",
+      "themeColor": "#FF7A93",
+      "backgroundColor": "#FFF9FA",
+      "display": "standalone",
+      "description": "커플 운동 채팅 앱 — 함께라서 더 건강해"
     }
   }
 }
