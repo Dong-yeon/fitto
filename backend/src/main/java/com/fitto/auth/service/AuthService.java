@@ -104,12 +104,12 @@ public class AuthService {
         return UserResponse.from(user);
     }
 
-    /** 프로필(이름) 수정. */
+    /** 프로필 수정 — 제공된 필드(이름/사진)만 반영. */
     @Transactional
-    public UserResponse updateMe(Long userId, String name) {
+    public UserResponse updateMe(Long userId, String name, String profileImageUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
-        user.updateProfile(name, null);
+        user.updateProfile(name, profileImageUrl);
         return UserResponse.from(user);
     }
 

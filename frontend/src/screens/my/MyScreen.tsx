@@ -1,6 +1,6 @@
 /** MY — 미니멀·발랄. 프로필(이름 편집) + 로그아웃/탈퇴 */
 import React, { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Avatar } from '../../components/Avatar';
@@ -13,6 +13,7 @@ import { streakApi } from '../../api/streak';
 import { getErrorMessage } from '../../utils/error';
 import { toast } from '../../store/toastStore';
 import { haptics } from '../../utils/haptics';
+import { pickImage, uploadImage } from '../../utils/imageUpload';
 import { colors, fontSize, spacing } from '../../constants/theme';
 
 export function MyScreen() {
@@ -21,6 +22,7 @@ export function MyScreen() {
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [maxStreak, setMaxStreak] = useState(0);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,7 +39,7 @@ export function MyScreen() {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await updateProfile(name.trim());
+      await updateProfile({ name: name.trim() });
       haptics.success();
       toast.success('프로필을 수정했어요 ✨');
       setEditing(false);
@@ -45,6 +47,22 @@ export function MyScreen() {
       Alert.alert('오류', getErrorMessage(e));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onChangePhoto = async () => {
+    try {
+      const uri = await pickImage();
+      if (!uri) return;
+      setPhotoUploading(true);
+      const url = await uploadImage(uri);
+      await updateProfile({ profileImageUrl: url });
+      haptics.success();
+      toast.success('프로필 사진을 변경했어요 📸');
+    } catch (e) {
+      Alert.alert('오류', getErrorMessage(e));
+    } finally {
+      setPhotoUploading(false);
     }
   };
 
@@ -78,7 +96,16 @@ export function MyScreen() {
         <Text style={styles.title}>MY</Text>
 
         <Card elevation="md" style={styles.profile}>
-          <Avatar name={user?.name} imageUrl={user?.profileImageUrl} size={80} />
+          <Pressable onPress={onChangePhoto} disabled={photoUploading} style={styles.avatarWrap}>
+            <Avatar name={user?.name} imageUrl={user?.profileImageUrl} size={80} />
+            <View style={styles.cameraBadge}>
+              {photoUploading ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Text style={styles.cameraIcon}>📷</Text>
+              )}
+            </View>
+          </Pressable>
 
           {editing ? (
             <View style={styles.editBox}>
@@ -125,6 +152,21 @@ const styles = StyleSheet.create({
   container: { padding: spacing.lg, flexGrow: 1 },
   title: { fontSize: fontSize.heading, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.5, marginBottom: spacing.lg },
   profile: { alignItems: 'center', paddingVertical: spacing.xl },
+  avatarWrap: { position: 'relative' },
+  cameraBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  cameraIcon: { fontSize: 13 },
   name: { fontSize: fontSize.title, fontWeight: '800', color: colors.textPrimary, marginTop: spacing.md },
   email: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: spacing.xs },
   badge: { marginTop: spacing.sm, color: colors.secondary, fontWeight: '800' },

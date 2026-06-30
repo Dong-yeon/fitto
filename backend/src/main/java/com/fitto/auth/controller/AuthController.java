@@ -64,7 +64,9 @@ public class AuthController {
     @PutMapping("/me")
     public ApiResponse<UserResponse> updateMe(@AuthenticationPrincipal AuthUser user,
                                               @Valid @RequestBody UpdateProfileRequest request) {
-        return ApiResponse.success(authService.updateMe(user.id(), request.name()), "프로필이 수정되었습니다.");
+        return ApiResponse.success(
+                authService.updateMe(user.id(), request.name(), request.profileImageUrl()),
+                "프로필이 수정되었습니다.");
     }
 
     @DeleteMapping("/withdraw")

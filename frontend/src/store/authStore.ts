@@ -19,7 +19,7 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   withdraw: () => Promise<void>;
-  updateProfile: (name: string) => Promise<void>;
+  updateProfile: (payload: { name?: string; profileImageUrl?: string }) => Promise<void>;
   setSession: (tokens: AuthTokens) => Promise<void>;
 }
 
@@ -72,8 +72,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().setSession(tokens);
   },
 
-  updateProfile: async (name) => {
-    const user = await authApi.updateMe(name);
+  updateProfile: async (payload) => {
+    const user = await authApi.updateMe(payload);
     set({ user });
   },
 
