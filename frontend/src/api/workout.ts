@@ -7,6 +7,7 @@ import type {
   TrainerRoutine,
   Workout,
   WorkoutSet,
+  WorkoutStats,
 } from '../types';
 
 export interface SaveWorkoutPayload {
@@ -30,6 +31,7 @@ export const workoutApi = {
   remove: (id: number) => unwrap(apiClient.delete<ApiResponse<void>>(`/workout/${id}`)),
   partnerToday: () =>
     unwrap(apiClient.get<ApiResponse<PartnerToday>>('/workout/partner/today')),
+  stats: () => unwrap(apiClient.get<ApiResponse<WorkoutStats>>('/workout/stats')),
 
   // 트레이너가 회원 오늘 기록 조회 (TRAINER, phase 6)
   memberToday: (userId: number) =>

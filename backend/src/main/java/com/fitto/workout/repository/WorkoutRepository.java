@@ -1,6 +1,7 @@
 package com.fitto.workout.repository;
 
 import com.fitto.workout.domain.Workout;
+import com.fitto.workout.dto.CategoryCount;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,6 +36,22 @@ public interface WorkoutRepository extends JpaRepository<Workout, Long> {
     List<LocalDate> findWorkoutDates(@Param("userId") Long userId,
                                      @Param("start") LocalDate start,
                                      @Param("end") LocalDate end);
+
+    /** 전체 운동한 날 수(중복 제거). */
+    @Query("select count(distinct w.workoutDate) from Workout w where w.userId = :userId")
+    long countDistinctWorkoutDates(@Param("userId") Long userId);
+
+    /** 최근 기간 부위(카테고리)별 세트 수. */
+    @Query("""
+            select s.category as category, count(s) as count
+            from WorkoutSet s
+            where s.workout.userId = :userId and s.workout.workoutDate >= :since
+              and s.category is not null
+            group by s.category
+            order by count(s) desc
+            """)
+    List<CategoryCount> categoryBreakdown(@Param("userId") Long userId,
+                                          @Param("since") LocalDate since);
 
     /** 회원 탈퇴 시 본인 운동 기록 삭제 (workout_sets 는 DB ON DELETE CASCADE). */
     @Modifying

@@ -47,9 +47,14 @@ export function WorkoutScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>운동</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('WorkoutCalendar')}>
-          <Text style={styles.calendarLink}>📅 캘린더</Text>
-        </TouchableOpacity>
+        <View style={styles.headerLinks}>
+          <TouchableOpacity onPress={() => navigation.navigate('WorkoutStats')}>
+            <Text style={styles.calendarLink}>📊 통계</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('WorkoutCalendar')}>
+            <Text style={styles.calendarLink}>📅 캘린더</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -104,6 +109,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   title: { fontSize: fontSize.title, fontWeight: '800', color: colors.textPrimary },
+  headerLinks: { flexDirection: 'row', gap: spacing.md },
   calendarLink: { fontSize: fontSize.body, color: colors.primary, fontWeight: '600' },
   list: { padding: spacing.lg, paddingBottom: 120 },
   sectionTitle: {

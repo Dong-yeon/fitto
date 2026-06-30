@@ -6,6 +6,7 @@ import com.fitto.workout.dto.CalendarDayResponse;
 import com.fitto.workout.dto.PartnerTodayResponse;
 import com.fitto.workout.dto.SaveWorkoutRequest;
 import com.fitto.workout.dto.WorkoutResponse;
+import com.fitto.workout.dto.WorkoutStatsResponse;
 import com.fitto.workout.service.WorkoutService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -55,6 +56,11 @@ public class WorkoutController {
                                                            @RequestParam int year,
                                                            @RequestParam int month) {
         return ApiResponse.success(workoutService.calendar(user.id(), year, month));
+    }
+
+    @GetMapping("/stats")
+    public ApiResponse<WorkoutStatsResponse> stats(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(workoutService.stats(user.id()));
     }
 
     @DeleteMapping("/{id}")

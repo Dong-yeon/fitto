@@ -11,9 +11,11 @@ import com.fitto.user.repository.UserRepository;
 import com.fitto.workout.domain.Workout;
 import com.fitto.workout.domain.WorkoutSet;
 import com.fitto.workout.dto.CalendarDayResponse;
+import com.fitto.workout.dto.CategoryCount;
 import com.fitto.workout.dto.PartnerTodayResponse;
 import com.fitto.workout.dto.SaveWorkoutRequest;
 import com.fitto.workout.dto.WorkoutResponse;
+import com.fitto.workout.dto.WorkoutStatsResponse;
 import com.fitto.workout.repository.WorkoutRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +109,36 @@ public class WorkoutService {
         return workoutRepository.findWorkoutDates(userId, start, end).stream()
                 .map(d -> new CalendarDayResponse(d, true))
                 .toList();
+    }
+
+    /** 운동 통계 — 설계서 WORKOUT-07. */
+    public WorkoutStatsResponse stats(Long userId) {
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
+        LocalDate monthStart = today.withDayOfMonth(1);
+
+        int weeklyDays = workoutRepository.findWorkoutDates(userId, weekStart, today).size();
+        int monthlyDays = workoutRepository.findWorkoutDates(userId, monthStart, today).size();
+        long totalDays = workoutRepository.countDistinctWorkoutDates(userId);
+
+        // 최근 7일 완료 여부
+        LocalDate from7 = today.minusDays(6);
+        var doneDates = new java.util.HashSet<>(workoutRepository.findWorkoutDates(userId, from7, today));
+        String[] weekdays = {"월", "화", "수", "목", "금", "토", "일"};
+        List<WorkoutStatsResponse.DayStat> last7 = new java.util.ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            LocalDate d = from7.plusDays(i);
+            last7.add(new WorkoutStatsResponse.DayStat(
+                    d.toString(), weekdays[d.getDayOfWeek().getValue() - 1], doneDates.contains(d)));
+        }
+
+        // 최근 30일 부위별
+        List<CategoryCount> rows = workoutRepository.categoryBreakdown(userId, today.minusDays(30));
+        List<WorkoutStatsResponse.CategoryStat> categories = rows.stream()
+                .map(r -> new WorkoutStatsResponse.CategoryStat(r.getCategory(), r.getCount()))
+                .toList();
+
+        return new WorkoutStatsResponse(weeklyDays, monthlyDays, totalDays, last7, categories);
     }
 
     @Transactional

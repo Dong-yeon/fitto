@@ -92,6 +92,15 @@ export interface PartnerToday {
   completed: boolean;
 }
 
+// 운동 통계 (WORKOUT-07)
+export interface WorkoutStats {
+  weeklyDays: number;
+  monthlyDays: number;
+  totalDays: number;
+  last7Days: { date: string; weekday: string; completed: boolean }[];
+  categoryBreakdown: { category: string; count: number }[];
+}
+
 // 5.7 trainer_routines
 export interface TrainerRoutine {
   id: number;

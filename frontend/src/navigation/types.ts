@@ -19,6 +19,7 @@ export type WorkoutStackParamList = {
   WorkoutMain: undefined;
   WorkoutRecord: undefined;
   WorkoutCalendar: undefined;
+  WorkoutStats: undefined;
 };
 
 // 채팅 탭 내부 스택 — 방 목록 / 대화 (CHAT-01/02)
