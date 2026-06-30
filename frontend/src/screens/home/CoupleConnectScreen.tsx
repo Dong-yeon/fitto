@@ -8,6 +8,8 @@ import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useRelationStore } from '../../store/relationStore';
 import { getErrorMessage } from '../../utils/error';
+import { copyText, shareText } from '../../utils/share';
+import { toast } from '../../store/toastStore';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'CoupleConnect'>;
@@ -33,14 +35,24 @@ export function CoupleConnectScreen({ navigation }: Props) {
     }
   };
 
+  const onCopy = async () => {
+    if (!code) return;
+    await copyText(code);
+    toast.success('초대코드를 복사했어요 📋');
+  };
+
+  const onShare = async () => {
+    if (!code) return;
+    await shareText(`Fitto에서 커플로 연결해요! 초대코드: ${code} (24시간 유효)`);
+  };
+
   const onConnect = async () => {
     setError(null);
     setConnecting(true);
     try {
       await connectCouple(input.trim().toUpperCase());
-      Alert.alert('연결 완료', '커플로 연결되었어요! 💞', [
-        { text: '확인', onPress: () => navigation.goBack() },
-      ]);
+      toast.success('커플로 연결되었어요! 💞');
+      navigation.goBack();
     } catch (e) {
       setError(getErrorMessage(e));
     } finally {
@@ -56,9 +68,15 @@ export function CoupleConnectScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>내 초대코드 만들기</Text>
           <Text style={styles.desc}>코드를 상대방에게 공유하세요. (24시간 동안 유효)</Text>
           {code ? (
-            <View style={styles.codeBox}>
-              <Text style={styles.code}>{code}</Text>
-            </View>
+            <>
+              <View style={styles.codeBox}>
+                <Text style={styles.code}>{code}</Text>
+              </View>
+              <View style={styles.codeActions}>
+                <Button title="📋 복사" variant="soft" size="md" onPress={onCopy} style={styles.actionBtn} />
+                <Button title="📤 공유" variant="soft" size="md" onPress={onShare} style={styles.actionBtn} />
+              </View>
+            </>
           ) : null}
           <Button
             title={code ? '새 코드 생성' : '초대코드 생성'}
@@ -110,6 +128,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   code: { fontSize: 40, fontWeight: '800', color: colors.primaryDark, letterSpacing: 8 },
+  codeActions: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  actionBtn: { flex: 1 },
   gap: { marginTop: spacing.sm },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
   codeInput: { letterSpacing: 4, fontWeight: '700' },

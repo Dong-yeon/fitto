@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { WorkoutStackParamList } from '../../navigation/types';
 import { Button } from '../../components/Button';
 import { WorkoutCard } from '../../components/WorkoutCard';
+import { EmptyState } from '../../components/EmptyState';
 import { useWorkoutStore } from '../../store/workoutStore';
 import { getErrorMessage } from '../../utils/error';
 import { colors, fontSize, spacing } from '../../constants/theme';
@@ -77,7 +78,9 @@ export function WorkoutScreen({ navigation }: Props) {
         }
         renderItem={({ item }) => <WorkoutCard workout={item} onLongPress={onLongPress} />}
         ListEmptyComponent={
-          !loading ? <Text style={styles.emptyText}>기록이 없습니다.</Text> : null
+          !loading ? (
+            <EmptyState emoji="📝" title="아직 운동 기록이 없어요" description="아래 버튼으로 첫 운동을 기록해보세요!" />
+          ) : null
         }
         ListFooterComponent={
           loadingMore ? <Text style={styles.footer}>불러오는 중…</Text> : null

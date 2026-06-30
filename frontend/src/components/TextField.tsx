@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { colors, fontSize, radius, spacing } from '../constants/theme';
 
 interface Props extends TextInputProps {
@@ -7,29 +7,41 @@ interface Props extends TextInputProps {
   errorText?: string;
 }
 
-export function TextField({ label, errorText, style, onFocus, onBlur, ...rest }: Props) {
+export function TextField({ label, errorText, style, secureTextEntry, onFocus, onBlur, ...rest }: Props) {
   const [focused, setFocused] = useState(false);
+  const [reveal, setReveal] = useState(false);
+  const isPassword = !!secureTextEntry;
+
   return (
     <View style={styles.wrapper}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <TextInput
-        placeholderTextColor={colors.textTertiary}
-        style={[
-          styles.input,
-          focused && styles.inputFocused,
-          !!errorText && styles.inputError,
-          style,
-        ]}
-        onFocus={(e) => {
-          setFocused(true);
-          onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setFocused(false);
-          onBlur?.(e);
-        }}
-        {...rest}
-      />
+      <View style={styles.inputRow}>
+        <TextInput
+          placeholderTextColor={colors.textTertiary}
+          secureTextEntry={isPassword && !reveal}
+          style={[
+            styles.input,
+            isPassword && styles.inputWithToggle,
+            focused && styles.inputFocused,
+            !!errorText && styles.inputError,
+            style,
+          ]}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          {...rest}
+        />
+        {isPassword ? (
+          <Pressable style={styles.eye} onPress={() => setReveal((v) => !v)} hitSlop={8}>
+            <Text style={styles.eyeText}>{reveal ? '🙈' : '👁️'}</Text>
+          </Pressable>
+        ) : null}
+      </View>
       {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
     </View>
   );
@@ -44,6 +56,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
     fontWeight: '700',
   },
+  inputRow: { justifyContent: 'center' },
   input: {
     height: 54,
     borderWidth: 1.5,
@@ -54,10 +67,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     backgroundColor: colors.surfaceAlt,
   },
-  inputFocused: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surface,
-  },
+  inputWithToggle: { paddingRight: 48 },
+  inputFocused: { borderColor: colors.primary, backgroundColor: colors.surface },
   inputError: { borderColor: colors.danger, backgroundColor: colors.surface },
+  eye: { position: 'absolute', right: spacing.sm, height: 40, width: 40, alignItems: 'center', justifyContent: 'center' },
+  eyeText: { fontSize: 18 },
   error: { color: colors.danger, fontSize: fontSize.caption, marginTop: spacing.xs, marginLeft: spacing.xs },
 });

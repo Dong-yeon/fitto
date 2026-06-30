@@ -10,6 +10,7 @@
     "@stomp/stompjs": "^7.3.0",
     "axios": "^1.18.1",
     "expo": "~56.0.12",
+    "expo-clipboard": "~56.0.4",
     "expo-secure-store": "~56.0.4",
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",

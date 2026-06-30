@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Workout } from '../types';
+import { relativeDateLabel } from '../utils/date';
 import { colors, fontSize, radius, spacing } from '../constants/theme';
 
 interface Props {
@@ -18,7 +19,7 @@ export function WorkoutCard({ workout, onLongPress }: Props) {
       style={styles.card}
     >
       <View style={styles.header}>
-        <Text style={styles.date}>{workout.workoutDate}</Text>
+        <Text style={styles.date}>{relativeDateLabel(workout.workoutDate)}</Text>
         {workout.totalDurationMin ? (
           <Text style={styles.duration}>⏱ {workout.totalDurationMin}분</Text>
         ) : null}

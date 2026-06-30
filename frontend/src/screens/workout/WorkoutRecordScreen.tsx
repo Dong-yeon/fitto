@@ -17,6 +17,7 @@ import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useWorkoutStore } from '../../store/workoutStore';
 import { getErrorMessage } from '../../utils/error';
+import { toast } from '../../store/toastStore';
 import { toDateString } from '../../utils/date';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 
@@ -68,6 +69,7 @@ export function WorkoutRecordScreen({ navigation }: Props) {
           orderNo: i + 1,
         })),
       });
+      toast.success('운동 기록 완료! 🔥');
       navigation.goBack();
     } catch (e) {
       Alert.alert('오류', getErrorMessage(e));
