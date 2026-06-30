@@ -1,8 +1,10 @@
 /** 채팅 대화 — 설계서 2.5 / 4.5 CHAT-02 (실시간 메시지) */
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +20,9 @@ import type { ChatStackParamList } from '../../navigation/types';
 import { useChatStore } from '../../store/chatStore';
 import { useAuthStore } from '../../store/authStore';
 import { haptics } from '../../utils/haptics';
+import { pickImage, uploadImage } from '../../utils/imageUpload';
+import { getErrorMessage } from '../../utils/error';
+import { toast } from '../../store/toastStore';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 import type { ChatMessage } from '../../types';
 
@@ -38,6 +43,7 @@ export function ChatRoomScreen({ navigation, route }: Props) {
   const messages = useChatStore((s) => s.messages[relationId] ?? []);
   const { openRoom, closeRoom, send, markRead } = useChatStore();
   const [text, setText] = useState('');
+  const [uploading, setUploading] = useState(false);
   // 이미 읽음 처리한 최대 메시지 id — 중복 PUT 방지
   const markedUpToRef = useRef(0);
 
@@ -79,13 +85,34 @@ export function ChatRoomScreen({ navigation, route }: Props) {
     else Alert.alert('전송 실패', '연결이 끊겼어요. 잠시 후 다시 시도해주세요.');
   };
 
+  const onPickImage = async () => {
+    try {
+      const uri = await pickImage();
+      if (!uri) return;
+      setUploading(true);
+      const url = await uploadImage(uri);
+      const ok = send(relationId, { messageType: 'IMAGE', imageUrl: url });
+      if (ok) haptics.light();
+      else Alert.alert('전송 실패', '연결이 끊겼어요. 잠시 후 다시 시도해주세요.');
+    } catch (e) {
+      toast.error(getErrorMessage(e, '이미지 전송에 실패했어요.'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const renderItem = ({ item }: { item: ChatMessage }) => {
     const mine = item.senderId === myId;
+    const isImage = item.messageType === 'IMAGE' && !!item.imageUrl;
     return (
       <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
-        <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-          <Text style={[styles.msgText, mine && styles.msgTextMine]}>{item.content}</Text>
-        </View>
+        {isImage ? (
+          <Image source={{ uri: item.imageUrl! }} style={styles.msgImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
+            <Text style={[styles.msgText, mine && styles.msgTextMine]}>{item.content}</Text>
+          </View>
+        )}
         <Text style={styles.time}>{timeOf(item.createdAt)}</Text>
       </View>
     );
@@ -118,6 +145,13 @@ export function ChatRoomScreen({ navigation, route }: Props) {
           ))}
         </View>
         <View style={styles.inputBar}>
+          <TouchableOpacity style={styles.imageBtn} onPress={onPickImage} disabled={uploading}>
+            {uploading ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.imageBtnText}>📷</Text>
+            )}
+          </TouchableOpacity>
           <TextInput
             style={styles.input}
             value={text}
@@ -151,6 +185,7 @@ const styles = StyleSheet.create({
   bubbleTheirs: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 6 },
   msgText: { fontSize: fontSize.subtitle, color: colors.textPrimary, lineHeight: 21 },
   msgTextMine: { color: colors.white },
+  msgImage: { width: 200, height: 200, borderRadius: radius.lg, backgroundColor: colors.surfaceAlt },
   time: { fontSize: 10, color: colors.textTertiary, marginHorizontal: spacing.xs },
   reactions: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
   reactionBtn: {
@@ -172,6 +207,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     backgroundColor: colors.background,
   },
+  imageBtn: { width: 46, height: 46, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  imageBtnText: { fontSize: 20 },
   input: {
     flex: 1,
     maxHeight: 110,

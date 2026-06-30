@@ -28,3 +28,16 @@ export const STORAGE_KEYS = {
   accessToken: 'fitto.accessToken',
   refreshToken: 'fitto.refreshToken',
 } as const;
+
+/**
+ * Cloudinary 이미지 업로드 설정.
+ * 무료 계정 생성 → Settings → Upload → unsigned upload preset 만들고 아래 두 값 채우기.
+ * (docs/IMAGE_UPLOAD.md 참고)
+ */
+export const CLOUDINARY = {
+  cloudName: 'YOUR_CLOUD_NAME',
+  uploadPreset: 'YOUR_UNSIGNED_PRESET',
+};
+
+export const isCloudinaryConfigured = () =>
+  CLOUDINARY.cloudName !== 'YOUR_CLOUD_NAME' && CLOUDINARY.uploadPreset !== 'YOUR_UNSIGNED_PRESET';
