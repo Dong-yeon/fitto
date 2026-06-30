@@ -1,12 +1,15 @@
 /** MY — 미니멀·발랄. 프로필(이름 편집) + 로그아웃/탈퇴 */
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Avatar } from '../../components/Avatar';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { BadgeCard } from '../../components/BadgeCard';
 import { useAuthStore } from '../../store/authStore';
+import { streakApi } from '../../api/streak';
 import { getErrorMessage } from '../../utils/error';
 import { toast } from '../../store/toastStore';
 import { haptics } from '../../utils/haptics';
@@ -17,6 +20,13 @@ export function MyScreen() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
+  const [maxStreak, setMaxStreak] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      streakApi.me().then((s) => setMaxStreak(s.maxCount)).catch(() => setMaxStreak(0));
+    }, []),
+  );
 
   const startEdit = () => {
     setName(user?.name ?? '');
@@ -88,6 +98,10 @@ export function MyScreen() {
           )}
         </Card>
 
+        <View style={styles.badgeWrap}>
+          <BadgeCard maxStreak={maxStreak} />
+        </View>
+
         <Card elevation="sm" style={styles.menu}>
           <Pressable style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]} onPress={onLogout}>
             <Text style={styles.menuText}>로그아웃</Text>
@@ -115,6 +129,7 @@ const styles = StyleSheet.create({
   email: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: spacing.xs },
   badge: { marginTop: spacing.sm, color: colors.secondary, fontWeight: '800' },
   editBtn: { marginTop: spacing.md },
+  badgeWrap: { marginTop: spacing.lg },
   editBox: { alignSelf: 'stretch', marginTop: spacing.lg },
   editActions: { flexDirection: 'row', gap: spacing.sm },
   flex: { flex: 1 },
