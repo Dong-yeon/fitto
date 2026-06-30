@@ -12,6 +12,7 @@ interface RelationState {
   createInvite: () => Promise<InviteCode>;
   connectCouple: (code: string) => Promise<void>;
   setBackground: (url: string) => Promise<void>;
+  setAnniversary: (date: string) => Promise<void>;
   end: (id: number) => Promise<void>;
 }
 
@@ -42,6 +43,11 @@ export const useRelationStore = create<RelationState>((set, get) => ({
 
   setBackground: async (url) => {
     await relationApi.setCoupleBackground(url);
+    await get().fetchAll();
+  },
+
+  setAnniversary: async (date) => {
+    await relationApi.setAnniversary(date);
     await get().fetchAll();
   },
 

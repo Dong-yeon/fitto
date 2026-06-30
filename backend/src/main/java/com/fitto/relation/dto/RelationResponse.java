@@ -6,6 +6,7 @@ import com.fitto.relation.domain.RelationStatus;
 import com.fitto.relation.domain.RelationType;
 import com.fitto.user.domain.User;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -18,7 +19,8 @@ public record RelationResponse(
         RelationStatus status,
         UserResponse partner,
         LocalDateTime connectedAt,
-        String backgroundImageUrl
+        String backgroundImageUrl,
+        LocalDate anniversaryDate
 ) {
     public static RelationResponse of(Relation relation, User partner) {
         return new RelationResponse(
@@ -27,6 +29,7 @@ public record RelationResponse(
                 relation.getStatus(),
                 partner != null ? UserResponse.from(partner) : null,
                 relation.getConnectedAt(),
-                relation.getBackgroundImageUrl());
+                relation.getBackgroundImageUrl(),
+                relation.getAnniversaryDate());
     }
 }

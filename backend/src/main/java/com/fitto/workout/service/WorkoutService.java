@@ -41,15 +41,18 @@ public class WorkoutService {
     private final RelationRepository relationRepository;
     private final UserRepository userRepository;
     private final StreakService streakService;
+    private final com.fitto.common.event.CoupleEventPublisher coupleEventPublisher;
 
     public WorkoutService(WorkoutRepository workoutRepository,
                           RelationRepository relationRepository,
                           UserRepository userRepository,
-                          StreakService streakService) {
+                          StreakService streakService,
+                          com.fitto.common.event.CoupleEventPublisher coupleEventPublisher) {
         this.workoutRepository = workoutRepository;
         this.relationRepository = relationRepository;
         this.userRepository = userRepository;
         this.streakService = streakService;
+        this.coupleEventPublisher = coupleEventPublisher;
     }
 
     @Transactional
@@ -87,6 +90,11 @@ public class WorkoutService {
             log.warn("스트릭 갱신 실패 (운동은 저장됨) userId={}, date={}: {}",
                     userId, workout.getWorkoutDate(), e.getMessage());
         }
+
+        // 커플 실시간 알림 — 상대방 홈에 '오늘 운동 완료' 반영
+        relationRepository.findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
+                .stream().findFirst()
+                .ifPresent(c -> coupleEventPublisher.publish(c.getId(), com.fitto.common.event.CoupleEvent.WORKOUT));
 
         return WorkoutResponse.from(workout);
     }

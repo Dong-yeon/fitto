@@ -10,6 +10,7 @@ import type { ChatMessage, MessageType } from '../types';
 let client: Client | null = null;
 let connecting: Promise<Client> | null = null;
 const subscriptions = new Map<number, StompSubscription>();
+const coupleSubscriptions = new Map<number, StompSubscription>();
 
 export interface OutgoingMessage {
   messageType?: MessageType;
@@ -67,6 +68,26 @@ export function unsubscribeRoom(relationId: number) {
   subscriptions.delete(relationId);
 }
 
+/** 커플 실시간 이벤트 구독 (/sub/couple/{relationId}) — 배경/기념일/운동 변경 알림 */
+export function subscribeCouple(relationId: number, onEvent: (type: string) => void) {
+  if (!client?.connected) return;
+  unsubscribeCouple(relationId);
+  const sub = client.subscribe(`/sub/couple/${relationId}`, (frame: IMessage) => {
+    try {
+      const data = JSON.parse(frame.body) as { type?: string };
+      onEvent(data.type ?? '');
+    } catch {
+      onEvent('');
+    }
+  });
+  coupleSubscriptions.set(relationId, sub);
+}
+
+export function unsubscribeCouple(relationId: number) {
+  coupleSubscriptions.get(relationId)?.unsubscribe();
+  coupleSubscriptions.delete(relationId);
+}
+
 export function publishMessage(relationId: number, payload: OutgoingMessage): boolean {
   if (!client?.connected) return false;
   client.publish({
@@ -79,6 +100,8 @@ export function publishMessage(relationId: number, payload: OutgoingMessage): bo
 export function disconnectSocket() {
   subscriptions.forEach((s) => s.unsubscribe());
   subscriptions.clear();
+  coupleSubscriptions.forEach((s) => s.unsubscribe());
+  coupleSubscriptions.clear();
   client?.deactivate();
   client = null;
   connecting = null;

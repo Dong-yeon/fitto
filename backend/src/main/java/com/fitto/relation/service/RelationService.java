@@ -32,10 +32,13 @@ public class RelationService {
     private final SecureRandom random = new SecureRandom();
     private final RelationRepository relationRepository;
     private final UserRepository userRepository;
+    private final com.fitto.common.event.CoupleEventPublisher coupleEventPublisher;
 
-    public RelationService(RelationRepository relationRepository, UserRepository userRepository) {
+    public RelationService(RelationRepository relationRepository, UserRepository userRepository,
+                           com.fitto.common.event.CoupleEventPublisher coupleEventPublisher) {
         this.relationRepository = relationRepository;
         this.userRepository = userRepository;
+        this.coupleEventPublisher = coupleEventPublisher;
     }
 
     /** 커플 초대코드 생성 — 6자리, 24시간 유효 (REL-01). */
@@ -95,12 +98,26 @@ public class RelationService {
     /** 커플 공유 배경 설정. */
     @Transactional
     public RelationResponse setCoupleBackground(Long userId, String url) {
-        Relation couple = relationRepository
+        Relation couple = activeCouple(userId);
+        couple.updateBackground(url);
+        coupleEventPublisher.publish(couple.getId(), com.fitto.common.event.CoupleEvent.BACKGROUND);
+        return toResponse(couple, userId);
+    }
+
+    /** 커플 기념일(D-day) 설정. */
+    @Transactional
+    public RelationResponse setAnniversary(Long userId, java.time.LocalDate date) {
+        Relation couple = activeCouple(userId);
+        couple.updateAnniversary(date);
+        coupleEventPublisher.publish(couple.getId(), com.fitto.common.event.CoupleEvent.ANNIVERSARY);
+        return toResponse(couple, userId);
+    }
+
+    private Relation activeCouple(Long userId) {
+        return relationRepository
                 .findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
                 .stream().findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.RELATION_NOT_FOUND));
-        couple.updateBackground(url);
-        return toResponse(couple, userId);
     }
 
     /** 관계 해제 (REL-06). */

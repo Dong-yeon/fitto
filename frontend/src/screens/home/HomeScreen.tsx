@@ -2,6 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import {
   ImageBackground,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -18,10 +19,13 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList, MainTabParamList } from '../../navigation/types';
 import { Button } from '../../components/Button';
 import { Avatar } from '../../components/Avatar';
+import { Card } from '../../components/Card';
+import { TextField } from '../../components/TextField';
 import { useAuthStore } from '../../store/authStore';
 import { useRelationStore } from '../../store/relationStore';
 import { workoutApi } from '../../api/workout';
 import { streakApi } from '../../api/streak';
+import { connectSocket, subscribeCouple, unsubscribeCouple } from '../../api/chatSocket';
 import { pickImage, uploadImage } from '../../utils/imageUpload';
 import { toast } from '../../store/toastStore';
 import { getErrorMessage } from '../../utils/error';
@@ -43,11 +47,14 @@ function daysTogether(connectedAt?: string | null): number {
 
 export function HomeScreen({ navigation }: Props) {
   const user = useAuthStore((s) => s.user);
-  const { couple, loading, fetchAll, setBackground } = useRelationStore();
+  const { couple, loading, fetchAll, setBackground, setAnniversary } = useRelationStore();
   const [partner, setPartner] = useState<PartnerToday | null>(null);
   const [myStreak, setMyStreak] = useState<Streak | null>(null);
   const [coupleStreak, setCoupleStreak] = useState<Streak | null>(null);
   const [myDone, setMyDone] = useState(false);
+  const [annModal, setAnnModal] = useState(false);
+  const [annInput, setAnnInput] = useState('');
+  const [annSaving, setAnnSaving] = useState(false);
   const bgUrl = couple?.backgroundImageUrl ?? null;
 
   const refresh = useCallback(() => {
@@ -59,6 +66,24 @@ export function HomeScreen({ navigation }: Props) {
   }, [fetchAll]);
 
   useFocusEffect(useCallback(() => refresh(), [refresh]));
+
+  // 커플 실시간 이벤트 구독 — 배경/기념일/상대방 운동 변경 시 자동 새로고침
+  const relationId = couple?.id;
+  useFocusEffect(
+    useCallback(() => {
+      if (!relationId) return;
+      let active = true;
+      connectSocket()
+        .then(() => {
+          if (active) subscribeCouple(relationId, () => refresh());
+        })
+        .catch(() => undefined);
+      return () => {
+        active = false;
+        unsubscribeCouple(relationId);
+      };
+    }, [relationId, refresh]),
+  );
 
   const onChangeBg = async () => {
     try {
@@ -72,8 +97,31 @@ export function HomeScreen({ navigation }: Props) {
     }
   };
 
+  const openAnnModal = () => {
+    setAnnInput((couple?.anniversaryDate ?? couple?.connectedAt ?? '').slice(0, 10));
+    setAnnModal(true);
+  };
+
+  const onSaveAnniversary = async () => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(annInput)) {
+      toast.error('YYYY-MM-DD 형식으로 입력해주세요.');
+      return;
+    }
+    setAnnSaving(true);
+    try {
+      await setAnniversary(annInput);
+      toast.success('기념일을 설정했어요 💖');
+      setAnnModal(false);
+    } catch (e) {
+      toast.error(getErrorMessage(e, '기념일 설정에 실패했어요.'));
+    } finally {
+      setAnnSaving(false);
+    }
+  };
+
   const connected = !!couple?.partner;
-  const dday = daysTogether(couple?.connectedAt);
+  // 기념일이 있으면 그 날 기준, 없으면 커플 연결일 기준
+  const dday = daysTogether(couple?.anniversaryDate ?? couple?.connectedAt);
 
   const content = (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -93,12 +141,14 @@ export function HomeScreen({ navigation }: Props) {
 
         {connected ? (
           <>
-            {/* D+ 카운터 */}
-            <View style={styles.ddayWrap}>
-              <Text style={styles.ddayLabel}>함께한 지</Text>
+            {/* D+ 카운터 (탭하면 기념일 설정) */}
+            <Pressable style={styles.ddayWrap} onPress={openAnnModal}>
+              <Text style={styles.ddayLabel}>
+                {couple?.anniversaryDate ? '기념일부터' : '함께한 지'} ✏️
+              </Text>
               <Text style={styles.dday}>D+{dday}</Text>
               <Text style={styles.cheer}>오늘도 함께라서 더 건강해요 💪</Text>
-            </View>
+            </Pressable>
 
             {/* 커플 프로필 두 개 */}
             <View style={styles.coupleRow}>
@@ -138,6 +188,29 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         )}
       </ScrollView>
+
+      {/* 기념일 설정 모달 */}
+      <Modal visible={annModal} transparent animationType="fade" onRequestClose={() => setAnnModal(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setAnnModal(false)}>
+          <Pressable>
+            <Card elevation="md" style={styles.modalCard}>
+              <Text style={styles.modalTitle}>💖 커플 기념일</Text>
+              <Text style={styles.modalDesc}>D+ 카운터의 기준 날짜를 설정해요.</Text>
+              <TextField
+                value={annInput}
+                onChangeText={setAnnInput}
+                placeholder="YYYY-MM-DD (예: 2024-02-14)"
+                keyboardType="numbers-and-punctuation"
+                maxLength={10}
+              />
+              <View style={styles.modalActions}>
+                <Button title="취소" variant="ghost" size="md" onPress={() => setAnnModal(false)} style={styles.modalBtn} />
+                <Button title="저장" size="md" onPress={onSaveAnniversary} loading={annSaving} style={styles.modalBtn} />
+              </View>
+            </Card>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 
@@ -209,4 +282,11 @@ const styles = StyleSheet.create({
   connectTitle: { color: colors.white, fontSize: fontSize.title, fontWeight: '800', marginTop: spacing.md },
   connectDesc: { color: 'rgba(255,255,255,0.92)', fontSize: fontSize.body, textAlign: 'center', marginTop: spacing.sm, lineHeight: 21 },
   connectBtn: { marginTop: spacing.lg, alignSelf: 'stretch' },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: spacing.xl },
+  modalCard: { gap: spacing.xs },
+  modalTitle: { fontSize: fontSize.subtitle, fontWeight: '800', color: colors.textPrimary },
+  modalDesc: { fontSize: fontSize.caption, color: colors.textSecondary, marginBottom: spacing.sm },
+  modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  modalBtn: { flex: 1 },
 });

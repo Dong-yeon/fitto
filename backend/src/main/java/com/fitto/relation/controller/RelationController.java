@@ -5,6 +5,7 @@ import com.fitto.common.security.AuthUser;
 import com.fitto.relation.dto.ConnectRequest;
 import com.fitto.relation.dto.InviteCodeResponse;
 import com.fitto.relation.dto.RelationResponse;
+import com.fitto.relation.dto.SetAnniversaryRequest;
 import com.fitto.relation.dto.SetBackgroundRequest;
 import com.fitto.relation.service.RelationService;
 import jakarta.validation.Valid;
@@ -56,6 +57,14 @@ public class RelationController {
         return ApiResponse.success(
                 relationService.setCoupleBackground(user.id(), request.backgroundImageUrl()),
                 "배경이 변경되었습니다.");
+    }
+
+    @PutMapping("/couple/anniversary")
+    public ApiResponse<RelationResponse> setAnniversary(@AuthenticationPrincipal AuthUser user,
+                                                        @Valid @RequestBody SetAnniversaryRequest request) {
+        return ApiResponse.success(
+                relationService.setAnniversary(user.id(), request.anniversaryDate()),
+                "기념일이 설정되었습니다.");
     }
 
     @GetMapping("/{id}")

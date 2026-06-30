@@ -13,6 +13,10 @@ export const relationApi = {
   setCoupleBackground: (backgroundImageUrl: string) =>
     unwrap(apiClient.put<ApiResponse<Relation>>('/relations/couple/background', { backgroundImageUrl })),
 
+  // 커플 기념일 (YYYY-MM-DD)
+  setAnniversary: (anniversaryDate: string) =>
+    unwrap(apiClient.put<ApiResponse<Relation>>('/relations/couple/anniversary', { anniversaryDate })),
+
   // 공통 관계 조회/해제
   list: () => unwrap(apiClient.get<ApiResponse<Relation[]>>('/relations')),
   detail: (id: number) => unwrap(apiClient.get<ApiResponse<Relation>>(`/relations/${id}`)),

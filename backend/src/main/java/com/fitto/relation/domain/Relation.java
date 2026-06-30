@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -65,6 +66,10 @@ public class Relation {
     @Column(name = "background_image_url", length = 500)
     private String backgroundImageUrl;
 
+    /** 커플 기념일 (D-day 기준일) */
+    @Column(name = "anniversary_date")
+    private LocalDate anniversaryDate;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -96,6 +101,10 @@ public class Relation {
 
     public void updateBackground(String url) {
         this.backgroundImageUrl = url;
+    }
+
+    public void updateAnniversary(LocalDate date) {
+        this.anniversaryDate = date;
     }
 
     public boolean isExpired() {

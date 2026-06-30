@@ -40,6 +40,7 @@ export interface Relation {
   partner: User | null;
   connectedAt?: string | null;
   backgroundImageUrl?: string | null;
+  anniversaryDate?: string | null;
 }
 
 export interface InviteCode {
