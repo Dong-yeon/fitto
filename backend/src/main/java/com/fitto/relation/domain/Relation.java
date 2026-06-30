@@ -61,6 +61,10 @@ public class Relation {
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
 
+    /** 커플 공유 배경 이미지 URL (홈 메인) */
+    @Column(name = "background_image_url", length = 500)
+    private String backgroundImageUrl;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -88,6 +92,10 @@ public class Relation {
     public void end() {
         this.status = RelationStatus.ENDED;
         this.endedAt = LocalDateTime.now();
+    }
+
+    public void updateBackground(String url) {
+        this.backgroundImageUrl = url;
     }
 
     public boolean isExpired() {

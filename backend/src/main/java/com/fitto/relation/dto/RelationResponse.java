@@ -17,7 +17,8 @@ public record RelationResponse(
         RelationType relationType,
         RelationStatus status,
         UserResponse partner,
-        LocalDateTime connectedAt
+        LocalDateTime connectedAt,
+        String backgroundImageUrl
 ) {
     public static RelationResponse of(Relation relation, User partner) {
         return new RelationResponse(
@@ -25,6 +26,7 @@ public record RelationResponse(
                 relation.getRelationType(),
                 relation.getStatus(),
                 partner != null ? UserResponse.from(partner) : null,
-                relation.getConnectedAt());
+                relation.getConnectedAt(),
+                relation.getBackgroundImageUrl());
     }
 }

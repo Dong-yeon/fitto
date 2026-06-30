@@ -39,6 +39,7 @@ export interface Relation {
   // 상대방(커플 파트너 / 트레이너 입장에선 회원, 회원 입장에선 트레이너)
   partner: User | null;
   connectedAt?: string | null;
+  backgroundImageUrl?: string | null;
 }
 
 export interface InviteCode {

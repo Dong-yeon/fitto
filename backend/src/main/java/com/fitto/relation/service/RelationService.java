@@ -92,6 +92,17 @@ public class RelationService {
         return toResponse(relation, userId);
     }
 
+    /** 커플 공유 배경 설정. */
+    @Transactional
+    public RelationResponse setCoupleBackground(Long userId, String url) {
+        Relation couple = relationRepository
+                .findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
+                .stream().findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.RELATION_NOT_FOUND));
+        couple.updateBackground(url);
+        return toResponse(couple, userId);
+    }
+
     /** 관계 해제 (REL-06). */
     @Transactional
     public void endRelation(Long userId, Long relationId) {

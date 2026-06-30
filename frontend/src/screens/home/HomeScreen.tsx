@@ -1,8 +1,7 @@
 /** 홈 — 비트윈 스타일 커플 메인 (배경 · D+ 카운터 · 커플 프로필 · 오늘 운동 상태) */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ImageBackground,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -35,7 +33,6 @@ type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList>
 >;
 
-const BG_KEY = 'fitto.coupleBg';
 const GRADIENT: [string, string, string] = ['#FF9AAE', '#FF7A93', '#FF6FA0'];
 
 function daysTogether(connectedAt?: string | null): number {
@@ -46,16 +43,12 @@ function daysTogether(connectedAt?: string | null): number {
 
 export function HomeScreen({ navigation }: Props) {
   const user = useAuthStore((s) => s.user);
-  const { couple, loading, fetchAll } = useRelationStore();
+  const { couple, loading, fetchAll, setBackground } = useRelationStore();
   const [partner, setPartner] = useState<PartnerToday | null>(null);
   const [myStreak, setMyStreak] = useState<Streak | null>(null);
   const [coupleStreak, setCoupleStreak] = useState<Streak | null>(null);
   const [myDone, setMyDone] = useState(false);
-  const [bgUrl, setBgUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    AsyncStorage.getItem(BG_KEY).then(setBgUrl).catch(() => undefined);
-  }, []);
+  const bgUrl = couple?.backgroundImageUrl ?? null;
 
   const refresh = useCallback(() => {
     fetchAll();
@@ -72,8 +65,7 @@ export function HomeScreen({ navigation }: Props) {
       const uri = await pickImage();
       if (!uri) return;
       const url = await uploadImage(uri);
-      await AsyncStorage.setItem(BG_KEY, url);
-      setBgUrl(url);
+      await setBackground(url); // 커플 공유 배경 (양쪽에 반영)
       toast.success('배경을 변경했어요 🖼️');
     } catch (e) {
       toast.error(getErrorMessage(e, '배경 변경에 실패했어요.'));
@@ -90,12 +82,14 @@ export function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={colors.white} />}
       >
-        {/* 상단: 배경 변경 */}
-        <View style={styles.topBar}>
-          <Pressable style={styles.bgBtn} onPress={onChangeBg}>
-            <Text style={styles.bgBtnText}>🖼️ 배경</Text>
-          </Pressable>
-        </View>
+        {/* 상단: 배경 변경 (커플 연결 시) */}
+        {connected ? (
+          <View style={styles.topBar}>
+            <Pressable style={styles.bgBtn} onPress={onChangeBg}>
+              <Text style={styles.bgBtnText}>🖼️ 배경</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {connected ? (
           <>

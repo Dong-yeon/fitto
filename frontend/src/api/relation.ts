@@ -9,6 +9,10 @@ export const relationApi = {
   connectCouple: (code: string) =>
     unwrap(apiClient.post<ApiResponse<Relation>>('/relations/couple/connect', { code })),
 
+  // 커플 공유 배경
+  setCoupleBackground: (backgroundImageUrl: string) =>
+    unwrap(apiClient.put<ApiResponse<Relation>>('/relations/couple/background', { backgroundImageUrl })),
+
   // 공통 관계 조회/해제
   list: () => unwrap(apiClient.get<ApiResponse<Relation[]>>('/relations')),
   detail: (id: number) => unwrap(apiClient.get<ApiResponse<Relation>>(`/relations/${id}`)),

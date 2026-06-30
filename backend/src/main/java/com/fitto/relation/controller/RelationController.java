@@ -5,6 +5,7 @@ import com.fitto.common.security.AuthUser;
 import com.fitto.relation.dto.ConnectRequest;
 import com.fitto.relation.dto.InviteCodeResponse;
 import com.fitto.relation.dto.RelationResponse;
+import com.fitto.relation.dto.SetBackgroundRequest;
 import com.fitto.relation.service.RelationService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +48,14 @@ public class RelationController {
     @GetMapping
     public ApiResponse<List<RelationResponse>> myRelations(@AuthenticationPrincipal AuthUser user) {
         return ApiResponse.success(relationService.findMyRelations(user.id()));
+    }
+
+    @PutMapping("/couple/background")
+    public ApiResponse<RelationResponse> setBackground(@AuthenticationPrincipal AuthUser user,
+                                                       @Valid @RequestBody SetBackgroundRequest request) {
+        return ApiResponse.success(
+                relationService.setCoupleBackground(user.id(), request.backgroundImageUrl()),
+                "배경이 변경되었습니다.");
     }
 
     @GetMapping("/{id}")
