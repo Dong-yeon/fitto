@@ -10,6 +10,7 @@ import { useRelationStore } from '../../store/relationStore';
 import { getErrorMessage } from '../../utils/error';
 import { copyText, shareText } from '../../utils/share';
 import { toast } from '../../store/toastStore';
+import { haptics } from '../../utils/haptics';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'CoupleConnect'>;
@@ -38,6 +39,7 @@ export function CoupleConnectScreen({ navigation }: Props) {
   const onCopy = async () => {
     if (!code) return;
     await copyText(code);
+    haptics.light();
     toast.success('초대코드를 복사했어요 📋');
   };
 
@@ -51,6 +53,7 @@ export function CoupleConnectScreen({ navigation }: Props) {
     setConnecting(true);
     try {
       await connectCouple(input.trim().toUpperCase());
+      haptics.success();
       toast.success('커플로 연결되었어요! 💞');
       navigation.goBack();
     } catch (e) {

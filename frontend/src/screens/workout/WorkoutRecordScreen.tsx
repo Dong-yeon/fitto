@@ -18,6 +18,7 @@ import { TextField } from '../../components/TextField';
 import { useWorkoutStore } from '../../store/workoutStore';
 import { getErrorMessage } from '../../utils/error';
 import { toast } from '../../store/toastStore';
+import { haptics } from '../../utils/haptics';
 import { toDateString } from '../../utils/date';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 
@@ -35,6 +36,18 @@ interface SetForm {
 
 const emptySet = (): SetForm => ({ exerciseName: '', sets: '', reps: '', weightKg: '' });
 
+// 자주 하는 운동 — 빠른 선택
+const PRESETS: { name: string; category: string }[] = [
+  { name: '벤치프레스', category: '근력' },
+  { name: '스쿼트', category: '근력' },
+  { name: '데드리프트', category: '근력' },
+  { name: '풀업', category: '근력' },
+  { name: '러닝', category: '유산소' },
+  { name: '사이클', category: '유산소' },
+  { name: '플랭크', category: '유연성' },
+  { name: '요가', category: '유연성' },
+];
+
 export function WorkoutRecordScreen({ navigation }: Props) {
   const save = useWorkoutStore((s) => s.save);
   const [sets, setSets] = useState<SetForm[]>([emptySet()]);
@@ -47,6 +60,19 @@ export function WorkoutRecordScreen({ navigation }: Props) {
   };
   const addSet = () => setSets((prev) => [...prev, emptySet()]);
   const removeSet = (idx: number) => setSets((prev) => prev.filter((_, i) => i !== idx));
+
+  // 프리셋 탭: 비어있는 첫 세트에 채우고, 없으면 새 세트로 추가
+  const applyPreset = (preset: { name: string; category: string }) => {
+    setSets((prev) => {
+      const emptyIdx = prev.findIndex((s) => !s.exerciseName.trim());
+      if (emptyIdx >= 0) {
+        return prev.map((s, i) =>
+          i === emptyIdx ? { ...s, exerciseName: preset.name, category: preset.category } : s,
+        );
+      }
+      return [...prev, { ...emptySet(), exerciseName: preset.name, category: preset.category }];
+    });
+  };
 
   const onSave = async () => {
     const filled = sets.filter((s) => s.exerciseName.trim().length > 0);
@@ -69,6 +95,7 @@ export function WorkoutRecordScreen({ navigation }: Props) {
           orderNo: i + 1,
         })),
       });
+      haptics.success();
       toast.success('운동 기록 완료! 🔥');
       navigation.goBack();
     } catch (e) {
@@ -86,6 +113,15 @@ export function WorkoutRecordScreen({ navigation }: Props) {
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <Text style={styles.date}>📅 {toDateString()}</Text>
+
+          <Text style={styles.presetLabel}>자주 하는 운동</Text>
+          <View style={styles.presetRow}>
+            {PRESETS.map((p) => (
+              <TouchableOpacity key={p.name} style={styles.presetChip} onPress={() => applyPreset(p)}>
+                <Text style={styles.presetText}>{p.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           {sets.map((s, idx) => (
             <View key={idx} style={styles.setCard}>
@@ -179,6 +215,17 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: spacing.lg, paddingBottom: spacing.xl },
   date: { fontSize: fontSize.subtitle, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.md },
+  presetLabel: { fontSize: fontSize.caption, color: colors.textSecondary, fontWeight: '700', marginBottom: spacing.sm },
+  presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+  presetChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  presetText: { fontSize: fontSize.caption, color: colors.textPrimary, fontWeight: '600' },
   setCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

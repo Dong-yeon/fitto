@@ -104,6 +104,15 @@ public class AuthService {
         return UserResponse.from(user);
     }
 
+    /** 프로필(이름) 수정. */
+    @Transactional
+    public UserResponse updateMe(Long userId, String name) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED));
+        user.updateProfile(name, null);
+        return UserResponse.from(user);
+    }
+
     /** 회원 탈퇴 — 연결된 관계를 종료한 뒤 계정 삭제 (AUTH-06). */
     @Transactional
     public void withdraw(Long userId) {

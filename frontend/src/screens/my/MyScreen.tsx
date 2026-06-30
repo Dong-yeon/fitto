@@ -1,15 +1,42 @@
-/** MY — 미니멀·발랄. 설계서 2.2 (프로필 + 로그아웃/탈퇴) */
-import React from 'react';
+/** MY — 미니멀·발랄. 프로필(이름 편집) + 로그아웃/탈퇴 */
+import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '../../components/Avatar';
 import { Card } from '../../components/Card';
+import { Button } from '../../components/Button';
+import { TextField } from '../../components/TextField';
 import { useAuthStore } from '../../store/authStore';
 import { getErrorMessage } from '../../utils/error';
+import { toast } from '../../store/toastStore';
+import { haptics } from '../../utils/haptics';
 import { colors, fontSize, spacing } from '../../constants/theme';
 
 export function MyScreen() {
-  const { user, logout, withdraw } = useAuthStore();
+  const { user, logout, withdraw, updateProfile } = useAuthStore();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user?.name ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = () => {
+    setName(user?.name ?? '');
+    setEditing(true);
+  };
+
+  const onSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await updateProfile(name.trim());
+      haptics.success();
+      toast.success('프로필을 수정했어요 ✨');
+      setEditing(false);
+    } catch (e) {
+      Alert.alert('오류', getErrorMessage(e));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const onLogout = () => {
     Alert.alert('로그아웃', '로그아웃 하시겠어요?', [
@@ -37,14 +64,28 @@ export function MyScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>MY</Text>
 
         <Card elevation="md" style={styles.profile}>
           <Avatar name={user?.name} imageUrl={user?.profileImageUrl} size={80} />
-          <Text style={styles.name}>{user?.name ?? '사용자'}</Text>
-          <Text style={styles.email}>{user?.email ?? ''}</Text>
-          {user?.role === 'TRAINER' ? <Text style={styles.badge}>🏋️ 트레이너</Text> : null}
+
+          {editing ? (
+            <View style={styles.editBox}>
+              <TextField value={name} onChangeText={setName} placeholder="이름" maxLength={50} />
+              <View style={styles.editActions}>
+                <Button title="취소" variant="ghost" size="md" onPress={() => setEditing(false)} style={styles.flex} />
+                <Button title="저장" size="md" onPress={onSave} loading={saving} disabled={!name.trim()} style={styles.flex} />
+              </View>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.name}>{user?.name ?? '사용자'}</Text>
+              <Text style={styles.email}>{user?.email ?? ''}</Text>
+              {user?.role === 'TRAINER' ? <Text style={styles.badge}>🏋️ 트레이너</Text> : null}
+              <Button title="✏️ 이름 수정" variant="soft" size="md" onPress={startEdit} style={styles.editBtn} />
+            </>
+          )}
         </Card>
 
         <Card elevation="sm" style={styles.menu}>
@@ -73,6 +114,10 @@ const styles = StyleSheet.create({
   name: { fontSize: fontSize.title, fontWeight: '800', color: colors.textPrimary, marginTop: spacing.md },
   email: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: spacing.xs },
   badge: { marginTop: spacing.sm, color: colors.secondary, fontWeight: '800' },
+  editBtn: { marginTop: spacing.md },
+  editBox: { alignSelf: 'stretch', marginTop: spacing.lg },
+  editActions: { flexDirection: 'row', gap: spacing.sm },
+  flex: { flex: 1 },
   menu: { marginTop: spacing.lg, padding: 0 },
   menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   pressed: { backgroundColor: colors.surfaceAlt },

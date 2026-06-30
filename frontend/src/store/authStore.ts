@@ -19,6 +19,7 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   withdraw: () => Promise<void>;
+  updateProfile: (name: string) => Promise<void>;
   setSession: (tokens: AuthTokens) => Promise<void>;
 }
 
@@ -69,6 +70,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (payload) => {
     const tokens = await authApi.register(payload);
     await get().setSession(tokens);
+  },
+
+  updateProfile: async (name) => {
+    const user = await authApi.updateMe(name);
+    set({ user });
   },
 
   // v2.0: 로그아웃은 클라이언트에서 토큰만 삭제

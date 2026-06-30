@@ -27,6 +27,8 @@ export const authApi = {
       }),
     ),
   me: () => unwrap(apiClient.get<ApiResponse<User>>('/auth/me')),
+  updateMe: (name: string) =>
+    unwrap(apiClient.put<ApiResponse<User>>('/auth/me', { name })),
   // v2.0: 로그아웃 엔드포인트 없음 — 클라이언트에서 토큰 삭제로 처리
   withdraw: () => unwrap(apiClient.delete<ApiResponse<void>>('/auth/withdraw')),
 };

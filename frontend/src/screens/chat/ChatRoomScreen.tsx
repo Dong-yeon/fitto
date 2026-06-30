@@ -5,6 +5,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -16,8 +17,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ChatStackParamList } from '../../navigation/types';
 import { useChatStore } from '../../store/chatStore';
 import { useAuthStore } from '../../store/authStore';
+import { haptics } from '../../utils/haptics';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
 import type { ChatMessage } from '../../types';
+
+const REACTIONS = ['💗', '🔥', '💪', '👍', '🎉'];
 
 type Props = NativeStackScreenProps<ChatStackParamList, 'ChatRoom'>;
 
@@ -63,9 +67,16 @@ export function ChatRoomScreen({ navigation, route }: Props) {
     const ok = send(relationId, { messageType: 'TEXT', content });
     if (ok) {
       setText('');
+      haptics.light();
     } else {
       Alert.alert('전송 실패', '연결이 끊겼어요. 잠시 후 다시 시도해주세요.');
     }
+  };
+
+  const sendReaction = (emoji: string) => {
+    const ok = send(relationId, { messageType: 'TEXT', content: emoji });
+    if (ok) haptics.light();
+    else Alert.alert('전송 실패', '연결이 끊겼어요. 잠시 후 다시 시도해주세요.');
   };
 
   const renderItem = ({ item }: { item: ChatMessage }) => {
@@ -95,6 +106,17 @@ export function ChatRoomScreen({ navigation, route }: Props) {
           renderItem={renderItem}
           contentContainerStyle={styles.list}
         />
+        <View style={styles.reactions}>
+          {REACTIONS.map((e) => (
+            <Pressable
+              key={e}
+              style={({ pressed }) => [styles.reactionBtn, pressed && styles.reactionPressed]}
+              onPress={() => sendReaction(e)}
+            >
+              <Text style={styles.reactionEmoji}>{e}</Text>
+            </Pressable>
+          ))}
+        </View>
         <View style={styles.inputBar}>
           <TextInput
             style={styles.input}
@@ -130,6 +152,19 @@ const styles = StyleSheet.create({
   msgText: { fontSize: fontSize.subtitle, color: colors.textPrimary, lineHeight: 21 },
   msgTextMine: { color: colors.white },
   time: { fontSize: 10, color: colors.textTertiary, marginHorizontal: spacing.xs },
+  reactions: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
+  reactionBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reactionPressed: { transform: [{ scale: 0.88 }], backgroundColor: colors.primarySoft },
+  reactionEmoji: { fontSize: 20 },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',

@@ -3,6 +3,7 @@ package com.fitto.auth.controller;
 import com.fitto.auth.dto.LoginRequest;
 import com.fitto.auth.dto.RegisterRequest;
 import com.fitto.auth.dto.TokenResponse;
+import com.fitto.auth.dto.UpdateProfileRequest;
 import com.fitto.auth.dto.UserResponse;
 import com.fitto.auth.service.AuthService;
 import com.fitto.common.exception.BusinessException;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +59,12 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<UserResponse> me(@AuthenticationPrincipal AuthUser user) {
         return ApiResponse.success(authService.getMe(user.id()));
+    }
+
+    @PutMapping("/me")
+    public ApiResponse<UserResponse> updateMe(@AuthenticationPrincipal AuthUser user,
+                                              @Valid @RequestBody UpdateProfileRequest request) {
+        return ApiResponse.success(authService.updateMe(user.id(), request.name()), "프로필이 수정되었습니다.");
     }
 
     @DeleteMapping("/withdraw")
