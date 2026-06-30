@@ -3,7 +3,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from './types';
-import { colors } from '../constants/theme';
+import { colors, shadow } from '../constants/theme';
 import { HomeStackNavigator } from './HomeStackNavigator';
 import { WorkoutStackNavigator } from './WorkoutStackNavigator';
 import { ChatStackNavigator } from './ChatStackNavigator';
@@ -14,7 +14,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const icon =
   (emoji: string) =>
   ({ focused }: { focused: boolean }) => (
-    <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.4 }}>{emoji}</Text>
+    <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
   );
 
 export function MainTabNavigator() {
@@ -24,6 +24,15 @@ export function MainTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: -2 },
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopWidth: 0,
+          height: 64,
+          paddingTop: 8,
+          paddingBottom: 10,
+          ...shadow.md,
+        },
       }}
     >
       <Tab.Screen

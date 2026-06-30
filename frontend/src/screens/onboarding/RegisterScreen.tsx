@@ -1,12 +1,12 @@
-/** 회원가입 — 설계서 2.1 / 3.1 AUTH-03 (이메일·비밀번호·이름·성별) */
+/** 회원가입 — 미니멀·발랄 톤. 설계서 2.1 / 3.1 AUTH-03 */
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { Card } from '../../components/Card';
 import { useAuthStore } from '../../store/authStore';
 import { getErrorMessage } from '../../utils/error';
 import { colors, fontSize, radius, spacing } from '../../constants/theme';
@@ -39,7 +40,6 @@ export function RegisterScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await register({ email: email.trim(), password, name: name.trim(), gender });
-      // 성공 시 RootNavigator 가 메인으로 전환 (커플 연결은 홈에서 진행)
     } catch (e) {
       setError(getErrorMessage(e));
     } finally {
@@ -51,15 +51,12 @@ export function RegisterScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>회원가입</Text>
+          <Text style={styles.title}>반가워요! 👋</Text>
           <Text style={styles.subtitle}>함께 운동할 준비를 시작해요</Text>
 
-          <View style={styles.form}>
+          <Card elevation="md" style={styles.card}>
             <TextField
               label="이메일"
               value={email}
@@ -80,29 +77,28 @@ export function RegisterScreen({ navigation }: Props) {
             <Text style={styles.fieldLabel}>성별 (선택)</Text>
             <View style={styles.genderRow}>
               {(['MALE', 'FEMALE'] as const).map((g) => (
-                <TouchableOpacity
+                <Pressable
                   key={g}
-                  style={[styles.genderChip, gender === g && styles.genderChipActive]}
+                  style={({ pressed }) => [
+                    styles.genderChip,
+                    gender === g && styles.genderChipActive,
+                    pressed && styles.pressed,
+                  ]}
                   onPress={() => setGender(gender === g ? undefined : g)}
                 >
                   <Text style={[styles.genderText, gender === g && styles.genderTextActive]}>
-                    {g === 'MALE' ? '남성' : '여성'}
+                    {g === 'MALE' ? '🙋‍♂️ 남성' : '🙋‍♀️ 여성'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Button
-              title="가입하고 시작하기"
-              onPress={onSubmit}
-              loading={loading}
-              disabled={!canSubmit}
-              style={styles.submit}
-            />
-            <Button title="이미 계정이 있어요" variant="ghost" onPress={() => navigation.goBack()} />
-          </View>
+            <Button title="가입하고 시작하기" onPress={onSubmit} loading={loading} disabled={!canSubmit} style={styles.submit} />
+          </Card>
+
+          <Button title="이미 계정이 있어요" variant="ghost" size="md" onPress={() => navigation.goBack()} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -112,30 +108,26 @@ export function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
-  container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  title: { fontSize: fontSize.heading, fontWeight: '800', color: colors.textPrimary },
-  subtitle: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: spacing.xs },
-  form: { marginTop: spacing.lg },
-  fieldLabel: {
-    fontSize: fontSize.caption,
-    color: colors.textSecondary,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
+  container: { flexGrow: 1, justifyContent: 'center', padding: spacing.lg },
+  title: { fontSize: fontSize.heading, fontWeight: '800', color: colors.textPrimary, marginLeft: spacing.xs },
+  subtitle: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: spacing.xs, marginBottom: spacing.lg, marginLeft: spacing.xs },
+  card: { gap: spacing.xs },
+  fieldLabel: { fontSize: fontSize.caption, color: colors.textSecondary, fontWeight: '700', marginBottom: spacing.sm, marginLeft: spacing.xs },
   genderRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   genderChip: {
     flex: 1,
-    height: 48,
+    height: 50,
     borderRadius: radius.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
   },
-  genderChipActive: { borderColor: colors.primary, backgroundColor: '#FFEEF1' },
-  genderText: { color: colors.textSecondary, fontWeight: '600' },
-  genderTextActive: { color: colors.primary },
-  error: { color: colors.danger, fontSize: fontSize.caption, marginBottom: spacing.sm },
+  genderChipActive: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  genderText: { color: colors.textSecondary, fontWeight: '700' },
+  genderTextActive: { color: colors.primaryDark },
+  pressed: { transform: [{ scale: 0.97 }] },
+  error: { color: colors.danger, fontSize: fontSize.caption, marginBottom: spacing.sm, marginLeft: spacing.xs },
   submit: { marginTop: spacing.sm },
 });

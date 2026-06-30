@@ -1,18 +1,12 @@
-/** 로그인 — 설계서 2.1 / 3.1 (이메일 로그인. 소셜 로그인은 추후) */
+/** 로그인 — 미니멀·발랄 톤. 설계서 2.1 / 3.1 (이메일 로그인) */
 import React, { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
+import { Card } from '../../components/Card';
 import { useAuthStore } from '../../store/authStore';
 import { getErrorMessage } from '../../utils/error';
 import { colors, fontSize, spacing } from '../../constants/theme';
@@ -31,7 +25,6 @@ export function LoginScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      // 성공 시 RootNavigator 가 자동으로 메인으로 전환
     } catch (e) {
       setError(getErrorMessage(e));
     } finally {
@@ -43,15 +36,15 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.logo}>💑 Fitto</Text>
-          <Text style={styles.subtitle}>함께라서 더 건강해</Text>
+          <View style={styles.hero}>
+            <Text style={styles.logo}>💑</Text>
+            <Text style={styles.brand}>Fitto</Text>
+            <Text style={styles.slogan}>함께라서 더 건강해</Text>
+          </View>
 
-          <View style={styles.form}>
+          <Card elevation="md" style={styles.card}>
             <TextField
               label="이메일"
               value={email}
@@ -69,13 +62,12 @@ export function LoginScreen({ navigation }: Props) {
               secureTextEntry
               errorText={error ?? undefined}
             />
-            <Button title="로그인" onPress={onSubmit} loading={loading} disabled={!canSubmit} />
-            <Button
-              title="이메일로 회원가입"
-              variant="ghost"
-              onPress={() => navigation.navigate('Register')}
-              style={styles.gap}
-            />
+            <Button title="로그인" onPress={onSubmit} loading={loading} disabled={!canSubmit} style={styles.loginBtn} />
+          </Card>
+
+          <View style={styles.signupRow}>
+            <Text style={styles.signupText}>아직 계정이 없나요?</Text>
+            <Button title="이메일로 회원가입" variant="ghost" size="md" onPress={() => navigation.navigate('Register')} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -86,15 +78,13 @@ export function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
-  container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  logo: { fontSize: fontSize.heading, fontWeight: '800', color: colors.primary, textAlign: 'center' },
-  subtitle: {
-    fontSize: fontSize.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    marginBottom: spacing.xl,
-  },
-  form: { marginTop: spacing.lg },
-  gap: { marginTop: spacing.sm },
+  container: { flexGrow: 1, justifyContent: 'center', padding: spacing.lg },
+  hero: { alignItems: 'center', marginBottom: spacing.xl },
+  logo: { fontSize: 56 },
+  brand: { fontSize: fontSize.display, fontWeight: '800', color: colors.primary, marginTop: spacing.xs, letterSpacing: -0.5 },
+  slogan: { fontSize: fontSize.subtitle, color: colors.textSecondary, marginTop: spacing.xs },
+  card: { gap: spacing.xs },
+  loginBtn: { marginTop: spacing.sm },
+  signupRow: { alignItems: 'center', marginTop: spacing.lg, gap: spacing.xs },
+  signupText: { color: colors.textSecondary, fontSize: fontSize.body },
 });

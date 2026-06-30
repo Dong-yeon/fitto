@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#FF8FA3"
+      "backgroundColor": "#FF7A93"
     },
     "ios": {
       "supportsTablet": true,
@@ -18,7 +18,7 @@
     "android": {
       "package": "com.fitto.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FF8FA3",
+        "backgroundColor": "#FF7A93",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

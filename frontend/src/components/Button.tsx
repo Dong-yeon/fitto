@@ -1,54 +1,82 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Pressable,
+  PressableProps,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  TouchableOpacityProps,
   ViewStyle,
 } from 'react-native';
-import { colors, fontSize, radius, spacing } from '../constants/theme';
+import { colors, fontSize, radius, shadow, spacing } from '../constants/theme';
 
-interface Props extends TouchableOpacityProps {
+interface Props extends PressableProps {
   title: string;
   loading?: boolean;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'soft';
+  size?: 'md' | 'lg';
   style?: ViewStyle;
 }
 
-export function Button({ title, loading, variant = 'primary', style, disabled, ...rest }: Props) {
+export function Button({
+  title,
+  loading,
+  variant = 'primary',
+  size = 'lg',
+  style,
+  disabled,
+  ...rest
+}: Props) {
   const isDisabled = disabled || loading;
+  const filled = variant === 'primary' || variant === 'secondary';
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <Pressable
       disabled={isDisabled}
-      style={[styles.base, styles[variant], isDisabled && styles.disabled, style]}
+      style={({ pressed }) => [
+        styles.base,
+        size === 'md' ? styles.md : styles.lg,
+        styles[variant],
+        filled && shadow.sm,
+        pressed && !isDisabled && styles.pressed,
+        isDisabled && styles.disabled,
+        style,
+      ]}
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.white : colors.primary} />
+        <ActivityIndicator color={filled ? colors.white : colors.primary} />
       ) : (
-        <Text style={[styles.text, variant === 'primary' ? styles.textPrimary : styles.textAccent]}>
-          {title}
-        </Text>
+        <Text style={[styles.text, textStyle(variant)]}>{title}</Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
+const textStyle = (variant: Props['variant']) => {
+  switch (variant) {
+    case 'primary':
+    case 'secondary':
+      return { color: colors.white };
+    case 'soft':
+      return { color: colors.primaryDark };
+    default:
+      return { color: colors.primary };
+  }
+};
+
 const styles = StyleSheet.create({
   base: {
-    height: 52,
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
+  md: { height: 44 },
+  lg: { height: 54 },
   primary: { backgroundColor: colors.primary },
   secondary: { backgroundColor: colors.secondary },
+  soft: { backgroundColor: colors.primarySoft },
   ghost: { backgroundColor: 'transparent' },
-  disabled: { opacity: 0.5 },
-  text: { fontSize: fontSize.subtitle, fontWeight: '700' },
-  textPrimary: { color: colors.white },
-  textAccent: { color: colors.primary },
+  pressed: { transform: [{ scale: 0.97 }], opacity: 0.92 },
+  disabled: { opacity: 0.45 },
+  text: { fontSize: fontSize.subtitle, fontWeight: '800', letterSpacing: 0.2 },
 });
