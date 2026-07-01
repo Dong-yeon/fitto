@@ -5,6 +5,7 @@ import com.fitto.auth.dto.RegisterRequest;
 import com.fitto.auth.dto.TokenResponse;
 import com.fitto.auth.dto.UserResponse;
 import com.fitto.chat.repository.ChatMessageRepository;
+import com.fitto.notification.repository.DeviceTokenRepository;
 import com.fitto.common.exception.BusinessException;
 import com.fitto.common.exception.ErrorCode;
 import com.fitto.common.security.JwtTokenProvider;
@@ -34,6 +35,7 @@ public class AuthService {
     private final WorkoutRepository workoutRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final StreakRepository streakRepository;
+    private final DeviceTokenRepository deviceTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
@@ -42,6 +44,7 @@ public class AuthService {
                        WorkoutRepository workoutRepository,
                        ChatMessageRepository chatMessageRepository,
                        StreakRepository streakRepository,
+                       DeviceTokenRepository deviceTokenRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
@@ -49,6 +52,7 @@ public class AuthService {
         this.workoutRepository = workoutRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.streakRepository = streakRepository;
+        this.deviceTokenRepository = deviceTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
@@ -123,6 +127,7 @@ public class AuthService {
         streakRepository.deleteAllByUserId(userId);
         streakRepository.deleteAllByUserRelations(userId);
         workoutRepository.deleteAllByUserId(userId);
+        deviceTokenRepository.deleteAllByUserId(userId);
         relationRepository.deleteAllByUser(userId);
         userRepository.delete(user);
     }

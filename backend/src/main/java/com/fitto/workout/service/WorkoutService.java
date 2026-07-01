@@ -42,17 +42,20 @@ public class WorkoutService {
     private final UserRepository userRepository;
     private final StreakService streakService;
     private final com.fitto.common.event.CoupleEventPublisher coupleEventPublisher;
+    private final com.fitto.common.notification.NotificationService notificationService;
 
     public WorkoutService(WorkoutRepository workoutRepository,
                           RelationRepository relationRepository,
                           UserRepository userRepository,
                           StreakService streakService,
-                          com.fitto.common.event.CoupleEventPublisher coupleEventPublisher) {
+                          com.fitto.common.event.CoupleEventPublisher coupleEventPublisher,
+                          com.fitto.common.notification.NotificationService notificationService) {
         this.workoutRepository = workoutRepository;
         this.relationRepository = relationRepository;
         this.userRepository = userRepository;
         this.streakService = streakService;
         this.coupleEventPublisher = coupleEventPublisher;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -91,10 +94,15 @@ public class WorkoutService {
                     userId, workout.getWorkoutDate(), e.getMessage());
         }
 
-        // 커플 실시간 알림 — 상대방 홈에 '오늘 운동 완료' 반영
+        // 커플 실시간 반영 + 응원 푸시
         relationRepository.findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
                 .stream().findFirst()
-                .ifPresent(c -> coupleEventPublisher.publish(c.getId(), com.fitto.common.event.CoupleEvent.WORKOUT));
+                .ifPresent(c -> {
+                    coupleEventPublisher.publish(c.getId(), com.fitto.common.event.CoupleEvent.WORKOUT);
+                    Long partnerId = c.partnerOf(userId);
+                    String myName = userRepository.findById(userId).map(u -> u.getName()).orElse("상대방");
+                    notificationService.notify(partnerId, "함께 운동해요! 💪", myName + "님이 오늘 운동을 완료했어요!");
+                });
 
         return WorkoutResponse.from(workout);
     }

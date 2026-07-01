@@ -16,6 +16,8 @@ import type { WorkoutStackParamList } from '../../navigation/types';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { useWorkoutStore } from '../../store/workoutStore';
+import { useRelationStore } from '../../store/relationStore';
+import { publishEnsuringConnection } from '../../api/chatSocket';
 import { getErrorMessage } from '../../utils/error';
 import { toast } from '../../store/toastStore';
 import { haptics } from '../../utils/haptics';
@@ -50,6 +52,7 @@ const PRESETS: { name: string; category: string }[] = [
 
 export function WorkoutRecordScreen({ navigation }: Props) {
   const save = useWorkoutStore((s) => s.save);
+  const couple = useRelationStore((s) => s.couple);
   const [sets, setSets] = useState<SetForm[]>([emptySet()]);
   const [duration, setDuration] = useState('');
   const [memo, setMemo] = useState('');
@@ -82,7 +85,7 @@ export function WorkoutRecordScreen({ navigation }: Props) {
     }
     setSaving(true);
     try {
-      await save({
+      const saved = await save({
         workoutDate: toDateString(),
         totalDurationMin: duration ? Number(duration) : undefined,
         memo: memo.trim() || undefined,
@@ -97,6 +100,29 @@ export function WorkoutRecordScreen({ navigation }: Props) {
       });
       haptics.success();
       toast.success('운동 기록 완료! 🔥');
+
+      // 커플이 연결돼 있으면 채팅 공유 제안 (CHAT-04)
+      if (couple?.id) {
+        const summary = `💪 ${filled.map((s) => s.exerciseName.trim()).join(', ')}${
+          duration ? ` · ${duration}분` : ''
+        }`;
+        Alert.alert('운동 완료! 🎉', '이 운동을 채팅에 공유할까요?', [
+          { text: '다음에', style: 'cancel', onPress: () => navigation.goBack() },
+          {
+            text: '공유하기',
+            onPress: async () => {
+              await publishEnsuringConnection(couple.id, {
+                messageType: 'WORKOUT_CARD',
+                content: summary,
+                workoutId: saved.id,
+              });
+              toast.success('채팅에 공유했어요 💬');
+              navigation.goBack();
+            },
+          },
+        ]);
+        return;
+      }
       navigation.goBack();
     } catch (e) {
       Alert.alert('오류', getErrorMessage(e));

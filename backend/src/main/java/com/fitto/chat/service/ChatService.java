@@ -116,7 +116,7 @@ public class ChatService {
             return;
         }
         String senderName = userRepository.findById(senderId).map(User::getName).orElse("상대방");
-        notificationService.notifyNewMessage(recipientId, senderName, preview(message));
+        notificationService.notify(recipientId, senderName, preview(message));
     }
 
     private String preview(ChatMessage message) {

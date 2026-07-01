@@ -104,10 +104,16 @@ export function ChatRoomScreen({ navigation, route }: Props) {
   const renderItem = ({ item }: { item: ChatMessage }) => {
     const mine = item.senderId === myId;
     const isImage = item.messageType === 'IMAGE' && !!item.imageUrl;
+    const isWorkout = item.messageType === 'WORKOUT_CARD';
     return (
       <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
         {isImage ? (
           <Image source={{ uri: item.imageUrl! }} style={styles.msgImage} resizeMode="cover" />
+        ) : isWorkout ? (
+          <View style={[styles.workoutCard, mine ? styles.workoutCardMine : styles.workoutCardTheirs]}>
+            <Text style={styles.workoutBadge}>💪 운동 기록</Text>
+            <Text style={[styles.workoutText, mine && styles.workoutTextMine]}>{item.content}</Text>
+          </View>
         ) : (
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
             <Text style={[styles.msgText, mine && styles.msgTextMine]}>{item.content}</Text>
@@ -186,6 +192,12 @@ const styles = StyleSheet.create({
   msgText: { fontSize: fontSize.subtitle, color: colors.textPrimary, lineHeight: 21 },
   msgTextMine: { color: colors.white },
   msgImage: { width: 200, height: 200, borderRadius: radius.lg, backgroundColor: colors.surfaceAlt },
+  workoutCard: { paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radius.lg, borderWidth: 1.5, maxWidth: 240 },
+  workoutCardMine: { backgroundColor: colors.secondarySoft, borderColor: colors.secondary },
+  workoutCardTheirs: { backgroundColor: colors.surface, borderColor: colors.secondary },
+  workoutBadge: { fontSize: fontSize.caption, fontWeight: '800', color: colors.secondary, marginBottom: 2 },
+  workoutText: { fontSize: fontSize.subtitle, color: colors.textPrimary, fontWeight: '600' },
+  workoutTextMine: { color: colors.textPrimary },
   time: { fontSize: 10, color: colors.textTertiary, marginHorizontal: spacing.xs },
   reactions: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
   reactionBtn: {

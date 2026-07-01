@@ -7,6 +7,7 @@ import { STORAGE_KEYS } from '../constants/config';
 import { authApi, RegisterPayload } from '../api/auth';
 import { setAuthFailureHandler } from '../api/client';
 import { storage } from '../utils/storage';
+import { registerForPush } from '../utils/push';
 import { useChatStore } from './chatStore';
 import type { AuthTokens, User } from '../types';
 
@@ -51,6 +52,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 토큰 만료 시 client 인터셉터가 refresh 를 시도. 실패하면 catch 로 이동.
       const user = await authApi.me();
       set({ user, isAuthenticated: true, isLoading: false });
+      // 인증 복원 후 푸시 토큰 등록 (실패해도 무시)
+      registerForPush();
     } catch {
       await clearTokens();
       set({ user: null, isAuthenticated: false, isLoading: false });
@@ -60,6 +63,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setSession: async (tokens) => {
     await persistTokens(tokens);
     set({ user: tokens.user, isAuthenticated: true });
+    // 로그인/회원가입 직후 푸시 토큰 등록 (실패해도 무시)
+    registerForPush();
   },
 
   login: async (email, password) => {

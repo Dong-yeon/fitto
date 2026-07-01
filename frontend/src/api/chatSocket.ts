@@ -97,6 +97,19 @@ export function publishMessage(relationId: number, payload: OutgoingMessage): bo
   return true;
 }
 
+/** 연결을 보장한 뒤 발행 (채팅방 밖에서 운동 카드 공유 등) */
+export async function publishEnsuringConnection(
+  relationId: number,
+  payload: OutgoingMessage,
+): Promise<boolean> {
+  try {
+    await connectSocket();
+  } catch {
+    return false;
+  }
+  return publishMessage(relationId, payload);
+}
+
 export function disconnectSocket() {
   subscriptions.forEach((s) => s.unsubscribe());
   subscriptions.clear();
