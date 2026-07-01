@@ -31,4 +31,14 @@ public class StreakController {
     public ApiResponse<StreakResponse> couple(@AuthenticationPrincipal AuthUser user) {
         return ApiResponse.success(streakService.getCoupleStreak(user.id()));
     }
+
+    @GetMapping("/meal/me")
+    public ApiResponse<StreakResponse> mealMe(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(streakService.getMyMealStreak(user.id()));
+    }
+
+    @GetMapping("/meal/couple")
+    public ApiResponse<StreakResponse> mealCouple(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(streakService.getCoupleMealStreak(user.id()));
+    }
 }

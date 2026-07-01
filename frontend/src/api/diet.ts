@@ -1,6 +1,14 @@
 /** 식단 기록 API — 운동(workout.ts) 구조 미러링 */
 import { apiClient, unwrap } from './client';
-import type { ApiResponse, CalendarDay, Meal, MealStats, MealType, PartnerToday } from '../types';
+import type {
+  ApiResponse,
+  CalendarDay,
+  CoupleMealGoal,
+  Meal,
+  MealStats,
+  MealType,
+  PartnerToday,
+} from '../types';
 
 export interface SaveMealPayload {
   mealDate: string;
@@ -21,4 +29,5 @@ export const dietApi = {
   remove: (id: number) => unwrap(apiClient.delete<ApiResponse<void>>(`/meal/${id}`)),
   partnerToday: () => unwrap(apiClient.get<ApiResponse<PartnerToday>>('/meal/partner/today')),
   stats: () => unwrap(apiClient.get<ApiResponse<MealStats>>('/meal/stats')),
+  coupleGoal: () => unwrap(apiClient.get<ApiResponse<CoupleMealGoal>>('/meal/couple/goal')),
 };

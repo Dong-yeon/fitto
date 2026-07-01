@@ -7,6 +7,7 @@ import com.fitto.relation.dto.InviteCodeResponse;
 import com.fitto.relation.dto.RelationResponse;
 import com.fitto.relation.dto.SetAnniversaryRequest;
 import com.fitto.relation.dto.SetBackgroundRequest;
+import com.fitto.relation.dto.SetDietGoalRequest;
 import com.fitto.relation.service.RelationService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -65,6 +66,14 @@ public class RelationController {
         return ApiResponse.success(
                 relationService.setAnniversary(user.id(), request.anniversaryDate()),
                 "기념일이 설정되었습니다.");
+    }
+
+    @PutMapping("/couple/diet-goal")
+    public ApiResponse<RelationResponse> setDietGoal(@AuthenticationPrincipal AuthUser user,
+                                                     @Valid @RequestBody SetDietGoalRequest request) {
+        return ApiResponse.success(
+                relationService.setDietGoal(user.id(), request.dietGoalDays()),
+                "식단 목표가 설정되었습니다.");
     }
 
     @GetMapping("/{id}")

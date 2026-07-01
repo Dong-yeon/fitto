@@ -6,6 +6,7 @@ import com.fitto.common.exception.BusinessException;
 import com.fitto.common.exception.ErrorCode;
 import com.fitto.common.notification.NotificationService;
 import com.fitto.diet.domain.Meal;
+import com.fitto.diet.dto.CoupleMealGoalResponse;
 import com.fitto.diet.dto.MealResponse;
 import com.fitto.diet.dto.MealStatsResponse;
 import com.fitto.diet.dto.SaveMealRequest;
@@ -14,9 +15,12 @@ import com.fitto.relation.domain.Relation;
 import com.fitto.relation.domain.RelationStatus;
 import com.fitto.relation.domain.RelationType;
 import com.fitto.relation.repository.RelationRepository;
+import com.fitto.streak.service.StreakService;
 import com.fitto.user.repository.UserRepository;
 import com.fitto.workout.dto.CalendarDayResponse;
 import com.fitto.workout.dto.PartnerTodayResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,22 +41,26 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class MealService {
 
+    private static final Logger log = LoggerFactory.getLogger(MealService.class);
     private static final int HISTORY_PAGE_SIZE = 20;
 
     private final MealRepository mealRepository;
     private final RelationRepository relationRepository;
     private final UserRepository userRepository;
+    private final StreakService streakService;
     private final CoupleEventPublisher coupleEventPublisher;
     private final NotificationService notificationService;
 
     public MealService(MealRepository mealRepository,
                        RelationRepository relationRepository,
                        UserRepository userRepository,
+                       StreakService streakService,
                        CoupleEventPublisher coupleEventPublisher,
                        NotificationService notificationService) {
         this.mealRepository = mealRepository;
         this.relationRepository = relationRepository;
         this.userRepository = userRepository;
+        this.streakService = streakService;
         this.coupleEventPublisher = coupleEventPublisher;
         this.notificationService = notificationService;
     }
@@ -71,6 +79,14 @@ public class MealService {
                 .calories(req.calories())
                 .build();
         mealRepository.save(meal);
+
+        // 식단 스트릭 갱신 (개인 + 커플) — 별도 트랜잭션, 실패해도 식단 저장은 유지
+        try {
+            streakService.updateOnMeal(userId, meal.getMealDate());
+        } catch (RuntimeException e) {
+            log.warn("식단 스트릭 갱신 실패 (기록은 저장됨) userId={}, date={}: {}",
+                    userId, meal.getMealDate(), e.getMessage());
+        }
 
         // 커플 실시간 반영 + 응원 푸시
         relationRepository.findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
@@ -143,6 +159,33 @@ public class MealService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
         mealRepository.delete(meal);
+    }
+
+    /** 커플 공동 식단 목표 진행률 — 이번 주(월~) 둘 다 기록한 날 수. */
+    public CoupleMealGoalResponse coupleGoal(Long userId) {
+        List<Relation> couples = relationRepository
+                .findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE);
+        if (couples.isEmpty()) {
+            return CoupleMealGoalResponse.notConnected();
+        }
+        Relation couple = couples.get(0);
+        Long partnerId = couple.partnerOf(userId);
+
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+
+        var myDates = new HashSet<>(mealRepository.findMealDates(userId, weekStart, today));
+        var partnerDates = partnerId == null
+                ? new HashSet<LocalDate>()
+                : new HashSet<>(mealRepository.findMealDates(partnerId, weekStart, today));
+
+        var both = new HashSet<>(myDates);
+        both.retainAll(partnerDates);
+
+        Integer goalDays = couple.getDietGoalDays();
+        boolean achieved = goalDays != null && both.size() >= goalDays;
+        return new CoupleMealGoalResponse(true, goalDays, weekStart,
+                myDates.size(), partnerDates.size(), both.size(), achieved);
     }
 
     /** 커플 상대방의 오늘 식단 기록 여부 — 홈 커플 카드용. */

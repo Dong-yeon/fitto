@@ -2,6 +2,7 @@ package com.fitto.diet.controller;
 
 import com.fitto.common.response.ApiResponse;
 import com.fitto.common.security.AuthUser;
+import com.fitto.diet.dto.CoupleMealGoalResponse;
 import com.fitto.diet.dto.MealResponse;
 import com.fitto.diet.dto.MealStatsResponse;
 import com.fitto.diet.dto.SaveMealRequest;
@@ -72,5 +73,10 @@ public class MealController {
     @GetMapping("/partner/today")
     public ApiResponse<PartnerTodayResponse> partnerToday(@AuthenticationPrincipal AuthUser user) {
         return ApiResponse.success(mealService.partnerToday(user.id()));
+    }
+
+    @GetMapping("/couple/goal")
+    public ApiResponse<CoupleMealGoalResponse> coupleGoal(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(mealService.coupleGoal(user.id()));
     }
 }

@@ -70,6 +70,10 @@ public class Relation {
     @Column(name = "anniversary_date")
     private LocalDate anniversaryDate;
 
+    /** 커플 공동 식단 목표 — 이번 주 둘 다 기록할 일수 (1~7, NULL = 미설정) */
+    @Column(name = "diet_goal_days")
+    private Integer dietGoalDays;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -105,6 +109,10 @@ public class Relation {
 
     public void updateAnniversary(LocalDate date) {
         this.anniversaryDate = date;
+    }
+
+    public void updateDietGoal(Integer days) {
+        this.dietGoalDays = days;
     }
 
     public boolean isExpired() {

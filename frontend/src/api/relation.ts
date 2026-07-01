@@ -17,6 +17,10 @@ export const relationApi = {
   setAnniversary: (anniversaryDate: string) =>
     unwrap(apiClient.put<ApiResponse<Relation>>('/relations/couple/anniversary', { anniversaryDate })),
 
+  // 커플 공동 식단 목표 (주간 일수 1~7)
+  setDietGoal: (dietGoalDays: number) =>
+    unwrap(apiClient.put<ApiResponse<Relation>>('/relations/couple/diet-goal', { dietGoalDays })),
+
   // 공통 관계 조회/해제
   list: () => unwrap(apiClient.get<ApiResponse<Relation[]>>('/relations')),
   detail: (id: number) => unwrap(apiClient.get<ApiResponse<Relation>>(`/relations/${id}`)),

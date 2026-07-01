@@ -12,7 +12,7 @@ public interface StreakRepository extends JpaRepository<Streak, Long> {
 
     Optional<Streak> findByUserIdAndStreakType(Long userId, com.fitto.streak.domain.StreakType type);
 
-    Optional<Streak> findByRelationId(Long relationId);
+    Optional<Streak> findByRelationIdAndStreakType(Long relationId, com.fitto.streak.domain.StreakType type);
 
     @Modifying
     @Query("delete from Streak s where s.userId = :userId")

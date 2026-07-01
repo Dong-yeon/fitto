@@ -1,5 +1,6 @@
 package com.fitto.streak.service;
 
+import com.fitto.diet.repository.MealRepository;
 import com.fitto.relation.domain.Relation;
 import com.fitto.relation.domain.RelationStatus;
 import com.fitto.relation.domain.RelationType;
@@ -28,13 +29,16 @@ public class StreakService {
     private final StreakRepository streakRepository;
     private final RelationRepository relationRepository;
     private final WorkoutRepository workoutRepository;
+    private final MealRepository mealRepository;
 
     public StreakService(StreakRepository streakRepository,
                          RelationRepository relationRepository,
-                         WorkoutRepository workoutRepository) {
+                         WorkoutRepository workoutRepository,
+                         MealRepository mealRepository) {
         this.streakRepository = streakRepository;
         this.relationRepository = relationRepository;
         this.workoutRepository = workoutRepository;
+        this.mealRepository = mealRepository;
     }
 
     /**
@@ -53,8 +57,33 @@ public class StreakService {
         activeCouple(userId).ifPresent(couple -> {
             Long partnerId = couple.partnerOf(userId);
             if (partnerId != null && workoutRepository.existsByUserIdAndWorkoutDate(partnerId, date)) {
-                Streak coupleStreak = streakRepository.findByRelationId(couple.getId())
+                Streak coupleStreak = streakRepository
+                        .findByRelationIdAndStreakType(couple.getId(), StreakType.COUPLE)
                         .orElseGet(() -> Streak.couple(couple.getId()));
+                coupleStreak.applyWorkout(date);
+                streakRepository.save(coupleStreak);
+            }
+        });
+    }
+
+    /**
+     * 식단 저장 시 호출 — 개인/커플 식단 스트릭 갱신.
+     * 별도 트랜잭션(REQUIRES_NEW): 유니크 경합으로 실패해도 식단 저장은 보존된다.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateOnMeal(Long userId, LocalDate date) {
+        Streak personal = streakRepository.findByUserIdAndStreakType(userId, StreakType.PERSONAL_MEAL)
+                .orElseGet(() -> Streak.personalMeal(userId));
+        personal.applyWorkout(date);
+        streakRepository.save(personal);
+
+        // 커플 식단 스트릭 — 둘 다 해당 날짜에 기록했을 때만 카운트
+        activeCouple(userId).ifPresent(couple -> {
+            Long partnerId = couple.partnerOf(userId);
+            if (partnerId != null && mealRepository.existsByUserIdAndMealDate(partnerId, date)) {
+                Streak coupleStreak = streakRepository
+                        .findByRelationIdAndStreakType(couple.getId(), StreakType.COUPLE_MEAL)
+                        .orElseGet(() -> Streak.coupleMeal(couple.getId()));
                 coupleStreak.applyWorkout(date);
                 streakRepository.save(coupleStreak);
             }
@@ -71,9 +100,24 @@ public class StreakService {
     public StreakResponse getCoupleStreak(Long userId) {
         LocalDate today = LocalDate.now();
         return activeCouple(userId)
-                .flatMap(c -> streakRepository.findByRelationId(c.getId()))
+                .flatMap(c -> streakRepository.findByRelationIdAndStreakType(c.getId(), StreakType.COUPLE))
                 .map(s -> StreakResponse.of(s, today))
                 .orElseGet(() -> StreakResponse.empty(StreakType.COUPLE));
+    }
+
+    public StreakResponse getMyMealStreak(Long userId) {
+        LocalDate today = LocalDate.now();
+        return streakRepository.findByUserIdAndStreakType(userId, StreakType.PERSONAL_MEAL)
+                .map(s -> StreakResponse.of(s, today))
+                .orElseGet(() -> StreakResponse.empty(StreakType.PERSONAL_MEAL));
+    }
+
+    public StreakResponse getCoupleMealStreak(Long userId) {
+        LocalDate today = LocalDate.now();
+        return activeCouple(userId)
+                .flatMap(c -> streakRepository.findByRelationIdAndStreakType(c.getId(), StreakType.COUPLE_MEAL))
+                .map(s -> StreakResponse.of(s, today))
+                .orElseGet(() -> StreakResponse.empty(StreakType.COUPLE_MEAL));
     }
 
     private Optional<Relation> activeCouple(Long userId) {

@@ -41,6 +41,8 @@ export interface Relation {
   connectedAt?: string | null;
   backgroundImageUrl?: string | null;
   anniversaryDate?: string | null;
+  /** 커플 공동 식단 목표 — 주간 일수 (1~7, null = 미설정) */
+  dietGoalDays?: number | null;
 }
 
 export interface InviteCode {
@@ -136,6 +138,17 @@ export interface MealStats {
   last7Days: { date: string; weekday: string; completed: boolean; calories: number }[];
 }
 
+// 커플 공동 식단 목표 진행률 (GET /meal/couple/goal)
+export interface CoupleMealGoal {
+  connected: boolean;
+  goalDays: number | null;
+  weekStart: string | null;
+  myDays: number;
+  partnerDays: number;
+  bothDays: number;
+  achieved: boolean;
+}
+
 // 5.8 chat_messages
 export type MessageType = 'TEXT' | 'IMAGE' | 'WORKOUT_CARD' | 'MEAL_CARD' | 'ROUTINE_CARD';
 export interface ChatMessage {
@@ -160,8 +173,8 @@ export interface ChatRoom {
   unreadCount: number;
 }
 
-// 5.9 streaks
-export type StreakType = 'PERSONAL' | 'COUPLE';
+// 5.9 streaks (운동: PERSONAL/COUPLE, 식단: *_MEAL)
+export type StreakType = 'PERSONAL' | 'COUPLE' | 'PERSONAL_MEAL' | 'COUPLE_MEAL';
 export interface Streak {
   streakType: StreakType;
   currentCount: number;

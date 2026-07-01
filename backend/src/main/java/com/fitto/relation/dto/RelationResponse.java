@@ -20,7 +20,8 @@ public record RelationResponse(
         UserResponse partner,
         LocalDateTime connectedAt,
         String backgroundImageUrl,
-        LocalDate anniversaryDate
+        LocalDate anniversaryDate,
+        Integer dietGoalDays
 ) {
     public static RelationResponse of(Relation relation, User partner) {
         return new RelationResponse(
@@ -30,6 +31,7 @@ public record RelationResponse(
                 partner != null ? UserResponse.from(partner) : null,
                 relation.getConnectedAt(),
                 relation.getBackgroundImageUrl(),
-                relation.getAnniversaryDate());
+                relation.getAnniversaryDate(),
+                relation.getDietGoalDays());
     }
 }

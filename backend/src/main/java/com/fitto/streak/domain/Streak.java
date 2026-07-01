@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "streaks", uniqueConstraints = {
         @UniqueConstraint(name = "uq_streaks_user_type", columnNames = {"user_id", "streak_type"}),
-        @UniqueConstraint(name = "uq_streaks_relation", columnNames = {"relation_id"})
+        @UniqueConstraint(name = "uq_streaks_relation_type", columnNames = {"relation_id", "streak_type"})
 })
 @Getter
 @EntityListeners(AuditingEntityListener.class)
@@ -76,6 +76,14 @@ public class Streak {
 
     public static Streak couple(Long relationId) {
         return Streak.builder().relationId(relationId).streakType(StreakType.COUPLE).build();
+    }
+
+    public static Streak personalMeal(Long userId) {
+        return Streak.builder().userId(userId).streakType(StreakType.PERSONAL_MEAL).build();
+    }
+
+    public static Streak coupleMeal(Long relationId) {
+        return Streak.builder().relationId(relationId).streakType(StreakType.COUPLE_MEAL).build();
     }
 
     /**

@@ -113,6 +113,15 @@ public class RelationService {
         return toResponse(couple, userId);
     }
 
+    /** 커플 공동 식단 목표(주간 일수) 설정. */
+    @Transactional
+    public RelationResponse setDietGoal(Long userId, Integer days) {
+        Relation couple = activeCouple(userId);
+        couple.updateDietGoal(days);
+        coupleEventPublisher.publish(couple.getId(), com.fitto.common.event.CoupleEvent.DIET_GOAL);
+        return toResponse(couple, userId);
+    }
+
     private Relation activeCouple(Long userId) {
         return relationRepository
                 .findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
