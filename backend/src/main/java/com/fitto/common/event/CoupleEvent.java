@@ -8,4 +8,5 @@ public record CoupleEvent(String type) {
     public static final String BACKGROUND = "BACKGROUND";
     public static final String ANNIVERSARY = "ANNIVERSARY";
     public static final String WORKOUT = "WORKOUT";
+    public static final String DIET = "DIET";
 }

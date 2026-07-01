@@ -5,5 +5,6 @@ public enum MessageType {
     TEXT,
     IMAGE,
     WORKOUT_CARD,
+    MEAL_CARD,
     ROUTINE_CARD
 }

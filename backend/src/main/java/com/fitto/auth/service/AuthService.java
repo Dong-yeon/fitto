@@ -5,6 +5,7 @@ import com.fitto.auth.dto.RegisterRequest;
 import com.fitto.auth.dto.TokenResponse;
 import com.fitto.auth.dto.UserResponse;
 import com.fitto.chat.repository.ChatMessageRepository;
+import com.fitto.diet.repository.MealRepository;
 import com.fitto.notification.repository.DeviceTokenRepository;
 import com.fitto.common.exception.BusinessException;
 import com.fitto.common.exception.ErrorCode;
@@ -36,6 +37,7 @@ public class AuthService {
     private final ChatMessageRepository chatMessageRepository;
     private final StreakRepository streakRepository;
     private final DeviceTokenRepository deviceTokenRepository;
+    private final MealRepository mealRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
@@ -45,6 +47,7 @@ public class AuthService {
                        ChatMessageRepository chatMessageRepository,
                        StreakRepository streakRepository,
                        DeviceTokenRepository deviceTokenRepository,
+                       MealRepository mealRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
@@ -53,6 +56,7 @@ public class AuthService {
         this.chatMessageRepository = chatMessageRepository;
         this.streakRepository = streakRepository;
         this.deviceTokenRepository = deviceTokenRepository;
+        this.mealRepository = mealRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
@@ -127,6 +131,7 @@ public class AuthService {
         streakRepository.deleteAllByUserId(userId);
         streakRepository.deleteAllByUserRelations(userId);
         workoutRepository.deleteAllByUserId(userId);
+        mealRepository.deleteAllByUserId(userId);
         deviceTokenRepository.deleteAllByUserId(userId);
         relationRepository.deleteAllByUser(userId);
         userRepository.delete(user);

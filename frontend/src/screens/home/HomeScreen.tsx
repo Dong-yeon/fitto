@@ -24,6 +24,7 @@ import { TextField } from '../../components/TextField';
 import { useAuthStore } from '../../store/authStore';
 import { useRelationStore } from '../../store/relationStore';
 import { workoutApi } from '../../api/workout';
+import { dietApi } from '../../api/diet';
 import { streakApi } from '../../api/streak';
 import { connectSocket, subscribeCouple, unsubscribeCouple } from '../../api/chatSocket';
 import { pickImage, uploadImage } from '../../utils/imageUpload';
@@ -52,6 +53,8 @@ export function HomeScreen({ navigation }: Props) {
   const [myStreak, setMyStreak] = useState<Streak | null>(null);
   const [coupleStreak, setCoupleStreak] = useState<Streak | null>(null);
   const [myDone, setMyDone] = useState(false);
+  const [myMealDone, setMyMealDone] = useState(false);
+  const [partnerMeal, setPartnerMeal] = useState<PartnerToday | null>(null);
   const [annModal, setAnnModal] = useState(false);
   const [annInput, setAnnInput] = useState('');
   const [annSaving, setAnnSaving] = useState(false);
@@ -61,6 +64,8 @@ export function HomeScreen({ navigation }: Props) {
     fetchAll();
     workoutApi.today().then((l) => setMyDone(l.length > 0)).catch(() => setMyDone(false));
     workoutApi.partnerToday().then(setPartner).catch(() => setPartner(null));
+    dietApi.today().then((l) => setMyMealDone(l.length > 0)).catch(() => setMyMealDone(false));
+    dietApi.partnerToday().then(setPartnerMeal).catch(() => setPartnerMeal(null));
     streakApi.me().then(setMyStreak).catch(() => setMyStreak(null));
     streakApi.couple().then(setCoupleStreak).catch(() => setCoupleStreak(null));
   }, [fetchAll]);
@@ -171,13 +176,32 @@ export function HomeScreen({ navigation }: Props) {
             {/* 내 연속 */}
             <Text style={styles.myStreak}>🔥 내 연속 {myStreak?.currentCount ?? 0}일 · 최고 {myStreak?.maxCount ?? 0}일</Text>
 
+            {/* 오늘 식단 상태 */}
+            <Pressable
+              style={styles.mealChip}
+              onPress={() => navigation.navigate('Diet', { screen: 'DietMain' })}
+            >
+              <Text style={styles.mealChipText}>
+                🍽️ 오늘 식단 · 나 {myMealDone ? '✓' : '–'} / {partnerMeal?.partnerName ?? '상대'}{' '}
+                {partnerMeal?.completed ? '✓' : '–'}
+              </Text>
+            </Pressable>
+
             {/* 빠른 기록 */}
-            <Button
-              title={myDone ? '운동 더 기록하기' : '＋ 오늘 운동 완료!'}
-              variant={myDone ? 'soft' : 'secondary'}
-              onPress={() => navigation.navigate('Workout', { screen: 'WorkoutRecord' })}
-              style={styles.quick}
-            />
+            <View style={styles.quickRow}>
+              <Button
+                title={myDone ? '운동 더 하기' : '＋ 운동 완료!'}
+                variant={myDone ? 'soft' : 'secondary'}
+                onPress={() => navigation.navigate('Workout', { screen: 'WorkoutRecord' })}
+                style={styles.quickBtn}
+              />
+              <Button
+                title={myMealDone ? '식단 더 하기' : '＋ 식단 기록!'}
+                variant="soft"
+                onPress={() => navigation.navigate('Diet', { screen: 'DietRecord' })}
+                style={styles.quickBtn}
+              />
+            </View>
           </>
         ) : (
           <View style={styles.connectWrap}>
@@ -275,7 +299,11 @@ const styles = StyleSheet.create({
   streakChipText: { color: colors.white, fontWeight: '800', fontSize: fontSize.body },
   myStreak: { color: 'rgba(255,255,255,0.9)', textAlign: 'center', marginTop: spacing.md, fontSize: fontSize.caption, fontWeight: '600' },
 
-  quick: { marginTop: 'auto' },
+  mealChip: { alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, marginTop: spacing.md },
+  mealChipText: { color: colors.white, fontWeight: '700', fontSize: fontSize.caption },
+
+  quickRow: { flexDirection: 'row', gap: spacing.sm, marginTop: 'auto' },
+  quickBtn: { flex: 1 },
 
   connectWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: spacing.xxl },
   connectEmoji: { fontSize: 56 },

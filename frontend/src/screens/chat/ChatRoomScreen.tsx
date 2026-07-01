@@ -105,6 +105,7 @@ export function ChatRoomScreen({ navigation, route }: Props) {
     const mine = item.senderId === myId;
     const isImage = item.messageType === 'IMAGE' && !!item.imageUrl;
     const isWorkout = item.messageType === 'WORKOUT_CARD';
+    const isMeal = item.messageType === 'MEAL_CARD';
     return (
       <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
         {isImage ? (
@@ -113,6 +114,16 @@ export function ChatRoomScreen({ navigation, route }: Props) {
           <View style={[styles.workoutCard, mine ? styles.workoutCardMine : styles.workoutCardTheirs]}>
             <Text style={styles.workoutBadge}>💪 운동 기록</Text>
             <Text style={[styles.workoutText, mine && styles.workoutTextMine]}>{item.content}</Text>
+          </View>
+        ) : isMeal ? (
+          <View style={[styles.mealCard, mine ? styles.mealCardMine : styles.mealCardTheirs]}>
+            <Text style={styles.mealBadge}>🍽️ 식단</Text>
+            {item.imageUrl ? (
+              <Image source={{ uri: item.imageUrl }} style={styles.mealImage} resizeMode="cover" />
+            ) : null}
+            {item.content ? (
+              <Text style={styles.workoutText}>{item.content}</Text>
+            ) : null}
           </View>
         ) : (
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
@@ -198,6 +209,11 @@ const styles = StyleSheet.create({
   workoutBadge: { fontSize: fontSize.caption, fontWeight: '800', color: colors.secondary, marginBottom: 2 },
   workoutText: { fontSize: fontSize.subtitle, color: colors.textPrimary, fontWeight: '600' },
   workoutTextMine: { color: colors.textPrimary },
+  mealCard: { paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radius.lg, borderWidth: 1.5, maxWidth: 240, gap: 6 },
+  mealCardMine: { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  mealCardTheirs: { backgroundColor: colors.surface, borderColor: colors.accent },
+  mealBadge: { fontSize: fontSize.caption, fontWeight: '800', color: '#E0A020' },
+  mealImage: { width: 208, height: 156, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   time: { fontSize: 10, color: colors.textTertiary, marginHorizontal: spacing.xs },
   reactions: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
   reactionBtn: {

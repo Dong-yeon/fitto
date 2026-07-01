@@ -1,4 +1,4 @@
-/** 메인 하단 탭 — 설계서 2.2 (홈 🏠 / 운동 💪 / 채팅 💬 / MY 👤) */
+/** 메인 하단 탭 — 설계서 2.2 (홈 🏠 / 운동 💪 / 식단 🍽️ / 채팅 💬 / MY 👤) */
 import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -6,6 +6,7 @@ import type { MainTabParamList } from './types';
 import { colors, shadow } from '../constants/theme';
 import { HomeStackNavigator } from './HomeStackNavigator';
 import { WorkoutStackNavigator } from './WorkoutStackNavigator';
+import { DietStackNavigator } from './DietStackNavigator';
 import { ChatStackNavigator } from './ChatStackNavigator';
 import { MyScreen } from '../screens/my/MyScreen';
 
@@ -44,6 +45,11 @@ export function MainTabNavigator() {
         name="Workout"
         component={WorkoutStackNavigator}
         options={{ title: '운동', tabBarIcon: icon('💪') }}
+      />
+      <Tab.Screen
+        name="Diet"
+        component={DietStackNavigator}
+        options={{ title: '식단', tabBarIcon: icon('🍽️') }}
       />
       <Tab.Screen
         name="Chat"

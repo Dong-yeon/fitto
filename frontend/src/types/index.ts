@@ -115,8 +115,29 @@ export interface TrainerRoutine {
   isCompleted: boolean;
 }
 
+// 식단 (meals) — 끼니별 사진/메모/칼로리
+export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+export interface Meal {
+  id: number;
+  mealDate: string;
+  mealType: MealType;
+  mealTypeLabel: string;
+  memo?: string | null;
+  photoUrl?: string | null;
+  calories?: number | null;
+  createdAt: string;
+}
+
+// 식단 통계
+export interface MealStats {
+  weeklyDays: number;
+  monthlyDays: number;
+  totalDays: number;
+  last7Days: { date: string; weekday: string; completed: boolean; calories: number }[];
+}
+
 // 5.8 chat_messages
-export type MessageType = 'TEXT' | 'IMAGE' | 'WORKOUT_CARD' | 'ROUTINE_CARD';
+export type MessageType = 'TEXT' | 'IMAGE' | 'WORKOUT_CARD' | 'MEAL_CARD' | 'ROUTINE_CARD';
 export interface ChatMessage {
   id: number;
   relationId: number;

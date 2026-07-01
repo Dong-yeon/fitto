@@ -123,6 +123,7 @@ public class ChatService {
         return switch (message.getMessageType()) {
             case IMAGE -> "[이미지]";
             case WORKOUT_CARD -> "[운동 기록]";
+            case MEAL_CARD -> "[식단]";
             case ROUTINE_CARD -> "[루틴]";
             default -> message.getContent();
         };
