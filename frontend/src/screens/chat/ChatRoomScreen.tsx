@@ -28,6 +28,9 @@ import type { ChatMessage } from '../../types';
 
 const REACTIONS = ['💗', '🔥', '💪', '👍', '🎉'];
 
+// zustand 셀렉터가 매번 새 배열을 만들면 무한 리렌더(하얀 화면)가 나므로 안정 참조 사용
+const EMPTY_MESSAGES: ChatMessage[] = [];
+
 type Props = NativeStackScreenProps<ChatStackParamList, 'ChatRoom'>;
 
 const timeOf = (iso: string): string => {
@@ -40,7 +43,7 @@ const timeOf = (iso: string): string => {
 export function ChatRoomScreen({ navigation, route }: Props) {
   const { relationId, title } = route.params;
   const myId = useAuthStore((s) => s.user?.id);
-  const messages = useChatStore((s) => s.messages[relationId] ?? []);
+  const messages = useChatStore((s) => s.messages[relationId] ?? EMPTY_MESSAGES);
   const { openRoom, closeRoom, send, markRead } = useChatStore();
   const [text, setText] = useState('');
   const [uploading, setUploading] = useState(false);
