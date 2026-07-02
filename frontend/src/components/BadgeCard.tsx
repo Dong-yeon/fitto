@@ -4,25 +4,38 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Card } from './Card';
 import { colors, fontSize, radius, spacing } from '../constants/theme';
 
-const BADGES = [
+interface Badge {
+  days: number;
+  emoji: string;
+  label: string;
+}
+
+// 기본: 운동 뱃지
+const WORKOUT_BADGES: Badge[] = [
   { days: 7, emoji: '🔥', label: '7일' },
   { days: 30, emoji: '⭐', label: '30일' },
   { days: 100, emoji: '👑', label: '100일' },
 ];
 
-export function BadgeCard({ maxStreak }: { maxStreak: number }) {
-  const earned = BADGES.filter((b) => maxStreak >= b.days).length;
-  const next = BADGES.find((b) => maxStreak < b.days);
+interface Props {
+  maxStreak: number;
+  title?: string;
+  badges?: Badge[];
+}
+
+export function BadgeCard({ maxStreak, title = '🏅 뱃지', badges = WORKOUT_BADGES }: Props) {
+  const earned = badges.filter((b) => maxStreak >= b.days).length;
+  const next = badges.find((b) => maxStreak < b.days);
 
   return (
     <Card elevation="sm" style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>🏅 뱃지</Text>
-        <Text style={styles.count}>{earned}/{BADGES.length}</Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.count}>{earned}/{badges.length}</Text>
       </View>
 
       <View style={styles.row}>
-        {BADGES.map((b) => {
+        {badges.map((b) => {
           const unlocked = maxStreak >= b.days;
           return (
             <View key={b.days} style={styles.badge}>

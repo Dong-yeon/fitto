@@ -70,6 +70,8 @@ public class MealService {
         if (req.mealDate().isAfter(LocalDate.now())) {
             throw new BusinessException(ErrorCode.INVALID_INPUT, "미래 날짜는 기록할 수 없습니다.");
         }
+        // 목표 달성 판정용 — 이 저장이 해당 날짜의 첫 기록인지 (중복 축하 방지)
+        boolean firstMealOfDay = !mealRepository.existsByUserIdAndMealDate(userId, req.mealDate());
         Meal meal = Meal.builder()
                 .userId(userId)
                 .mealDate(req.mealDate())
@@ -88,18 +90,47 @@ public class MealService {
                     userId, meal.getMealDate(), e.getMessage());
         }
 
-        // 커플 실시간 반영 + 응원 푸시
+        // 커플 실시간 반영 + 응원 푸시 (+ 목표 달성 축하)
         relationRepository.findByUserAndTypeAndStatus(userId, RelationType.COUPLE, RelationStatus.ACTIVE)
                 .stream().findFirst()
                 .ifPresent(c -> {
                     coupleEventPublisher.publish(c.getId(), CoupleEvent.DIET);
                     Long partnerId = c.partnerOf(userId);
                     String myName = userRepository.findById(userId).map(u -> u.getName()).orElse("상대방");
-                    notificationService.notify(partnerId, "오늘 뭐 먹었을까? 🍽️",
-                            myName + "님이 식단을 기록했어요!");
+                    if (justAchievedGoal(c, userId, partnerId, req.mealDate(), firstMealOfDay)) {
+                        notificationService.notify(partnerId, "이번 주 식단 목표 달성! 🎉",
+                                myName + "님과 함께 주 " + c.getDietGoalDays() + "일 목표를 채웠어요!");
+                    } else {
+                        notificationService.notify(partnerId, "오늘 뭐 먹었을까? 🍽️",
+                                myName + "님이 식단을 기록했어요!");
+                    }
                 });
 
         return MealResponse.from(meal);
+    }
+
+    /**
+     * 이 저장으로 커플 주간 목표를 "방금" 달성했는지.
+     * 조건: 해당 날짜 첫 기록 + 상대방도 그 날 기록 + 둘 다 기록한 날 수가 정확히 목표에 도달.
+     */
+    private boolean justAchievedGoal(Relation couple, Long userId, Long partnerId,
+                                     LocalDate mealDate, boolean firstMealOfDay) {
+        Integer goalDays = couple.getDietGoalDays();
+        if (goalDays == null || !firstMealOfDay || partnerId == null) {
+            return false;
+        }
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+        // 이번 주 범위 밖의 (과거) 기록은 목표에 반영되지 않음
+        if (mealDate.isBefore(weekStart) || mealDate.isAfter(today)) {
+            return false;
+        }
+        if (!mealRepository.existsByUserIdAndMealDate(partnerId, mealDate)) {
+            return false;
+        }
+        var myDates = new HashSet<>(mealRepository.findMealDates(userId, weekStart, today));
+        myDates.retainAll(mealRepository.findMealDates(partnerId, weekStart, today));
+        return myDates.size() == goalDays;
     }
 
     public List<MealResponse> findToday(Long userId) {

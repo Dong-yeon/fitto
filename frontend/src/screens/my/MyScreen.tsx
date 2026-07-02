@@ -8,27 +8,69 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { BadgeCard } from '../../components/BadgeCard';
+import { WeeklyRecapCard } from '../../components/WeeklyRecapCard';
 import { useAuthStore } from '../../store/authStore';
+import { useRelationStore } from '../../store/relationStore';
 import { streakApi } from '../../api/streak';
+import { summaryApi } from '../../api/summary';
+import { publishEnsuringConnection } from '../../api/chatSocket';
 import { getErrorMessage } from '../../utils/error';
 import { toast } from '../../store/toastStore';
 import { haptics } from '../../utils/haptics';
 import { pickImage, uploadImage } from '../../utils/imageUpload';
 import { colors, fontSize, spacing } from '../../constants/theme';
+import type { WeeklyRecap } from '../../types';
+
+// 식단 뱃지 — 운동(7/30/100)과 같은 단계, 식단 스트릭 기준
+const MEAL_BADGES = [
+  { days: 7, emoji: '🥗', label: '7일' },
+  { days: 30, emoji: '🌟', label: '30일' },
+  { days: 100, emoji: '💎', label: '100일' },
+];
 
 export function MyScreen() {
   const { user, logout, withdraw, updateProfile } = useAuthStore();
+  const couple = useRelationStore((s) => s.couple);
+  const fetchRelations = useRelationStore((s) => s.fetchAll);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [maxStreak, setMaxStreak] = useState(0);
+  const [maxMealStreak, setMaxMealStreak] = useState(0);
+  const [recap, setRecap] = useState<WeeklyRecap | null>(null);
+  const [sharing, setSharing] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       streakApi.me().then((s) => setMaxStreak(s.maxCount)).catch(() => setMaxStreak(0));
-    }, []),
+      streakApi.mealMe().then((s) => setMaxMealStreak(s.maxCount)).catch(() => setMaxMealStreak(0));
+      summaryApi.weeklyRecap().then(setRecap).catch(() => setRecap(null));
+      fetchRelations().catch(() => {});
+    }, [fetchRelations]),
   );
+
+  const onShareRecap = async () => {
+    if (!couple?.id || !recap) return;
+    setSharing(true);
+    try {
+      const partner = recap.partnerName ?? '상대';
+      const content =
+        `📊 지난주 결산\n` +
+        `나 💪${recap.myWorkoutDays}일 🥗${recap.myMealDays}일 · ` +
+        `${partner} 💪${recap.partnerWorkoutDays}일 🥗${recap.partnerMealDays}일\n` +
+        `함께 💪${recap.bothWorkoutDays}일 🥗${recap.bothMealDays}일 💑`;
+      const ok = await publishEnsuringConnection(couple.id, { messageType: 'TEXT', content });
+      if (ok) {
+        haptics.success();
+        toast.success('채팅에 공유했어요 💬');
+      } else {
+        toast.error('연결이 끊겼어요. 잠시 후 다시 시도해주세요.');
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   const startEdit = () => {
     setName(user?.name ?? '');
@@ -125,8 +167,17 @@ export function MyScreen() {
           )}
         </Card>
 
+        {recap ? (
+          <View style={styles.badgeWrap}>
+            <WeeklyRecapCard recap={recap} onShare={onShareRecap} sharing={sharing} />
+          </View>
+        ) : null}
+
         <View style={styles.badgeWrap}>
-          <BadgeCard maxStreak={maxStreak} />
+          <BadgeCard title="🏅 운동 뱃지" maxStreak={maxStreak} />
+        </View>
+        <View style={styles.badgeWrap}>
+          <BadgeCard title="🍱 식단 뱃지" maxStreak={maxMealStreak} badges={MEAL_BADGES} />
         </View>
 
         <Card elevation="sm" style={styles.menu}>

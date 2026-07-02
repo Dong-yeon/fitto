@@ -138,6 +138,20 @@ export interface MealStats {
   last7Days: { date: string; weekday: string; completed: boolean; calories: number }[];
 }
 
+// 주간 결산 — 지난주 운동+식단 요약 (GET /summary/weekly-recap)
+export interface WeeklyRecap {
+  weekStart: string;
+  weekEnd: string;
+  myWorkoutDays: number;
+  myMealDays: number;
+  coupleConnected: boolean;
+  partnerName: string | null;
+  partnerWorkoutDays: number;
+  partnerMealDays: number;
+  bothWorkoutDays: number;
+  bothMealDays: number;
+}
+
 // 커플 공동 식단 목표 진행률 (GET /meal/couple/goal)
 export interface CoupleMealGoal {
   connected: boolean;
