@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const icon =
   (emoji: string) =>
   ({ focused }: { focused: boolean }) => (
-    <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
+    <Text style={{ fontSize: 20, lineHeight: 24, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
   );
 
 export function MainTabNavigator() {
@@ -25,13 +25,13 @@ export function MainTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: -2 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', lineHeight: 14 },
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 0,
-          height: 64,
-          paddingTop: 8,
-          paddingBottom: 10,
+          height: 70,
+          paddingTop: 6,
+          paddingBottom: 12,
           ...shadow.md,
         },
       }}
