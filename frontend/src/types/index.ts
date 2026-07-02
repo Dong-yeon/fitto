@@ -138,6 +138,16 @@ export interface MealStats {
   last7Days: { date: string; weekday: string; completed: boolean; calories: number }[];
 }
 
+// 레벨/성장 (GET /summary/level) — XP = 운동일×10 + 식단일×5
+export interface UserLevel {
+  level: number;
+  xp: number;
+  levelStartXp: number;
+  nextLevelXp: number;
+  workoutDays: number;
+  mealDays: number;
+}
+
 // 주간 결산 — 지난주 운동+식단 요약 (GET /summary/weekly-recap)
 export interface WeeklyRecap {
   weekStart: string;

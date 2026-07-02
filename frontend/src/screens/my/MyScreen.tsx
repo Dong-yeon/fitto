@@ -8,6 +8,7 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { BadgeCard } from '../../components/BadgeCard';
+import { LevelCard } from '../../components/LevelCard';
 import { WeeklyRecapCard } from '../../components/WeeklyRecapCard';
 import { useAuthStore } from '../../store/authStore';
 import { useRelationStore } from '../../store/relationStore';
@@ -19,7 +20,7 @@ import { toast } from '../../store/toastStore';
 import { haptics } from '../../utils/haptics';
 import { pickImage, uploadImage } from '../../utils/imageUpload';
 import { colors, fontSize, spacing } from '../../constants/theme';
-import type { WeeklyRecap } from '../../types';
+import type { UserLevel, WeeklyRecap } from '../../types';
 
 // 식단 뱃지 — 운동(7/30/100)과 같은 단계, 식단 스트릭 기준
 const MEAL_BADGES = [
@@ -38,6 +39,7 @@ export function MyScreen() {
   const [maxStreak, setMaxStreak] = useState(0);
   const [maxMealStreak, setMaxMealStreak] = useState(0);
   const [recap, setRecap] = useState<WeeklyRecap | null>(null);
+  const [level, setLevel] = useState<UserLevel | null>(null);
   const [sharing, setSharing] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
 
@@ -46,6 +48,7 @@ export function MyScreen() {
       streakApi.me().then((s) => setMaxStreak(s.maxCount)).catch(() => setMaxStreak(0));
       streakApi.mealMe().then((s) => setMaxMealStreak(s.maxCount)).catch(() => setMaxMealStreak(0));
       summaryApi.weeklyRecap().then(setRecap).catch(() => setRecap(null));
+      summaryApi.level().then(setLevel).catch(() => setLevel(null));
       fetchRelations().catch(() => {});
     }, [fetchRelations]),
   );
@@ -166,6 +169,12 @@ export function MyScreen() {
             </>
           )}
         </Card>
+
+        {level ? (
+          <View style={styles.badgeWrap}>
+            <LevelCard level={level} />
+          </View>
+        ) : null}
 
         {recap ? (
           <View style={styles.badgeWrap}>

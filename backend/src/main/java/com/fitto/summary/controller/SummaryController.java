@@ -2,6 +2,7 @@ package com.fitto.summary.controller;
 
 import com.fitto.common.response.ApiResponse;
 import com.fitto.common.security.AuthUser;
+import com.fitto.summary.dto.LevelResponse;
 import com.fitto.summary.dto.WeeklyRecapResponse;
 import com.fitto.summary.service.SummaryService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,5 +26,10 @@ public class SummaryController {
     @GetMapping("/weekly-recap")
     public ApiResponse<WeeklyRecapResponse> weeklyRecap(@AuthenticationPrincipal AuthUser user) {
         return ApiResponse.success(summaryService.weeklyRecap(user.id()));
+    }
+
+    @GetMapping("/level")
+    public ApiResponse<LevelResponse> level(@AuthenticationPrincipal AuthUser user) {
+        return ApiResponse.success(summaryService.level(user.id()));
     }
 }

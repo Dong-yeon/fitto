@@ -5,6 +5,7 @@ import com.fitto.relation.domain.Relation;
 import com.fitto.relation.domain.RelationStatus;
 import com.fitto.relation.domain.RelationType;
 import com.fitto.relation.repository.RelationRepository;
+import com.fitto.summary.dto.LevelResponse;
 import com.fitto.summary.dto.WeeklyRecapResponse;
 import com.fitto.user.repository.UserRepository;
 import com.fitto.workout.repository.WorkoutRepository;
@@ -37,6 +38,13 @@ public class SummaryService {
         this.mealRepository = mealRepository;
         this.relationRepository = relationRepository;
         this.userRepository = userRepository;
+    }
+
+    /** 레벨 — 누적 기록일에서 파생 계산. */
+    public LevelResponse level(Long userId) {
+        long workoutDays = workoutRepository.countDistinctWorkoutDates(userId);
+        long mealDays = mealRepository.countDistinctMealDates(userId);
+        return LevelResponse.of(workoutDays, mealDays);
     }
 
     public WeeklyRecapResponse weeklyRecap(Long userId) {
